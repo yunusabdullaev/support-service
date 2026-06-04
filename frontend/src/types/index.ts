@@ -91,6 +91,7 @@ export interface ImprovementRequest {
   description: string;
   requestedByClientsCount: number;
   source?: string;
+  clientPhone?: string;
   businessValue?: string;
   status: ImprovementStatus;
   createdBy?: { id: string; fullName: string };

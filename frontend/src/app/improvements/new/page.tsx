@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Product } from '@/types';
 import { useI18n } from '@/lib/i18n';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Phone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewImprovementPage() {
@@ -18,6 +18,7 @@ export default function NewImprovementPage() {
   const [form, setForm] = useState({
     title: '',
     productId: '',
+    clientPhone: '',
     description: '',
   });
   const [error, setError] = useState('');
@@ -97,6 +98,23 @@ export default function NewImprovementPage() {
               <option value="">{t('select_product')}</option>
               {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
+          </div>
+
+          {/* Client Phone */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              {t('client_phone')}
+              <span className="text-[10px] text-slate-600 font-normal">(ixtiyoriy)</span>
+            </label>
+            <input
+              id="improvement-phone"
+              type="tel"
+              value={form.clientPhone}
+              onChange={e => set('clientPhone', e.target.value)}
+              placeholder="+998 90 000 00 00"
+              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
           </div>
 
           {/* Description */}

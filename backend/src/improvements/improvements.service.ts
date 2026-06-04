@@ -9,6 +9,7 @@ export class CreateImprovementDto {
   description: string;
   requestedByClientsCount?: number;
   source?: string;
+  clientPhone?: string;
   businessValue?: string;
 }
 
@@ -17,6 +18,7 @@ export class UpdateImprovementDto {
   description?: string;
   requestedByClientsCount?: number;
   source?: string;
+  clientPhone?: string;
   businessValue?: string;
   status?: ImprovementStatus;
 }

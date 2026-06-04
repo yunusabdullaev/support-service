@@ -10,7 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import {
   Plus, Lightbulb, TrendingUp, UserPlus, Check,
-  Download, Edit3, Trash2, X, Save, AlertCircle
+  Download, Edit3, Trash2, X, Save, AlertCircle, Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -194,6 +194,12 @@ export default function ImprovementsPage() {
                           {imp.businessValue}
                         </p>
                       )}
+                      {imp.clientPhone && (
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-600 flex-shrink-0" />
+                          {imp.clientPhone}
+                        </p>
+                      )}
                       <p className="text-xs text-slate-600 mt-2">{formatDate(imp.createdAt)}</p>
                     </div>
 
@@ -286,6 +292,7 @@ function EditImprovementModal({ item, onClose, onSave, isPending }: {
     title: item.title,
     description: item.description,
     source: item.source || '',
+    clientPhone: item.clientPhone || '',
     businessValue: item.businessValue || '',
     status: item.status,
   });
@@ -319,6 +326,14 @@ function EditImprovementModal({ item, onClose, onSave, isPending }: {
           <div>
             <label className="block text-xs text-slate-400 mb-1">{t('source') || 'Manba'}</label>
             <input value={form.source} onChange={e => set('source', e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1.5">
+              <Phone className="w-3 h-3" />{t('client_phone')}
+            </label>
+            <input type="tel" value={form.clientPhone} onChange={e => set('clientPhone', e.target.value)}
+              placeholder="+998 90 000 00 00"
               className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
           </div>
           <div>
