@@ -304,9 +304,13 @@ export default function SettingsPage() {
                         <span className="ml-1.5 text-xs font-normal text-slate-500">(ixtiyoriy)</span>
                       </label>
                       <input type="text" value={displayChatId} onChange={e => setForm(f => ({...f, chatId: e.target.value}))}
-                        placeholder="-100123456789 (bo'sh qolsa ham bo'ladi)"
-                        className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
-                      <p className="text-xs text-slate-500 mt-1">Chat ID bo'lmasa, token tekshiriladi. Xabar yuborish uchun kerak.</p>
+                        placeholder="-100123456789"
+                        className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono" />
+                      {displayChatId && !/^-?\d+$/.test(displayChatId.trim()) ? (
+                        <p className="text-xs text-red-400 mt-1">⚠️ Chat ID faqat raqamdan iborat bo'lishi kerak! (masalan: -100123456789). URL yoki telefon raqam emas.</p>
+                      ) : (
+                        <p className="text-xs text-slate-500 mt-1">Guruh chat ID manfiy raqam bilan boshlanadi: -100...</p>
+                      )}
                     </div>
 
                     {/* Recipients list */}
@@ -323,7 +327,7 @@ export default function SettingsPage() {
                           value={newRecipient}
                           onChange={e => setNewRecipient(e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addRecipient())}
-                          placeholder="Chat ID yoki raqam (123456789)"
+                          placeholder="123456789"
                           className="flex-1 px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                         />
                         <button
@@ -355,7 +359,13 @@ export default function SettingsPage() {
                           ))}
                         </div>
                       )}
-                      <p className="text-xs text-slate-500 mt-1.5">Bot'dan /start bosib o'z Chat ID'ingizni toping: @userinfobot</p>
+                      <div className="mt-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                        <p className="text-xs text-amber-400 font-medium">📌 Chat ID qanday topiladi?</p>
+                        <p className="text-xs text-amber-400/80 mt-0.5">1. Telegram'da @userinfobot ga /start yuboring</p>
+                        <p className="text-xs text-amber-400/80">2. Bot sizning Chat ID'ingizni ko'rsatadi (faqat raqam)</p>
+                        <p className="text-xs text-amber-400/80">3. Guruh uchun: @RawDataBot ni guruhga qo'shing</p>
+                        <p className="text-xs text-red-400 mt-1">❌ https://t.me/... havolalar va +998... raqamlar emas!</p>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-t border-slate-800">

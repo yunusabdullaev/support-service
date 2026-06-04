@@ -55,7 +55,12 @@ export class TelegramService {
       });
       return true;
     } catch (error) {
-      this.logger.error('Failed to send Telegram message', error?.message);
+      const errData = error?.response?.data;
+      this.logger.error(
+        `Failed to send to chatId="${chatId}": ${error?.message}${
+          errData ? ` | Telegram: ${JSON.stringify(errData)}` : ''
+        }`,
+      );
       return false;
     }
   }
