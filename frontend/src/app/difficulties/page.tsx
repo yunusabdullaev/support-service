@@ -46,8 +46,10 @@ export default function DifficultiesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
-  const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
-  const canDelete = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
+  const canEditItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+  const canDeleteItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
 
   const { data: difficulties = [], isLoading } = useQuery<Difficulty[]>({
     queryKey: ['difficulties', statusFilter, productFilter, fromDate, toDate],
@@ -221,7 +223,7 @@ export default function DifficultiesPage() {
 
                   {/* Action buttons */}
                   <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canEdit && (
+                    {canEditItem(d.createdBy?.id) && (
                       <button
                         onClick={() => { openDetail(d); setTimeout(() => setIsEditing(true), 0); }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
@@ -230,7 +232,7 @@ export default function DifficultiesPage() {
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    {canDelete && (
+                    {canDeleteItem(d.createdBy?.id) && (
                       <button
                         onClick={() => setDeleteId(d.id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
@@ -307,7 +309,7 @@ export default function DifficultiesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  {canEdit && !isEditing && (
+                  {canEditItem(selected.createdBy?.id) && !isEditing && (
                     <button
                       onClick={() => setIsEditing(true)}
                       className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-400 transition-colors"
@@ -425,7 +427,7 @@ export default function DifficultiesPage() {
                   )}
 
                   {/* Delete button */}
-                  {canDelete && (
+                  {canDeleteItem(selected.createdBy?.id) && (
                     <button
                       onClick={() => setDeleteId(selected.id)}
                       className="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"

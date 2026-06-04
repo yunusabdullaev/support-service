@@ -26,8 +26,11 @@ export default function ImprovementsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<ImprovementRequest | null>(null);
 
-  const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
-  const canDelete = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
+  const canEditItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+
+  const canDeleteItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
 
   const handleExportExcel = () => {
     const params = new URLSearchParams();
@@ -196,7 +199,7 @@ export default function ImprovementsPage() {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {canEdit && (
+                      {canEditItem(imp.createdBy?.id) && (
                         <button
                           onClick={() => setEditItem(imp)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
@@ -205,7 +208,7 @@ export default function ImprovementsPage() {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                       )}
-                      {canDelete && (
+                      {canDeleteItem(imp.createdBy?.id) && (
                         <button
                           onClick={() => setDeleteId(imp.id)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"

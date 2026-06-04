@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ImprovementStatus } from '@prisma/client';
 import * as ExcelJS from 'exceljs';
@@ -64,13 +64,21 @@ export class ImprovementsService {
     });
   }
 
-  async update(id: string, dto: UpdateImprovementDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateImprovementDto, userId: string, userRole: string) {
+    const item = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(userRole);
+    if (!isPrivileged && item.createdById !== userId) {
+      throw new ForbiddenException('You can only edit your own improvements');
+    }
     return this.prisma.improvementRequest.update({ where: { id }, data: dto });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, userId: string, userRole: string) {
+    const item = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER'].includes(userRole);
+    if (!isPrivileged && item.createdById !== userId) {
+      throw new ForbiddenException('You can only delete your own improvements');
+    }
     return this.prisma.improvementRequest.delete({ where: { id } });
   }
 

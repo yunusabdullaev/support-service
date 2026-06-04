@@ -52,15 +52,13 @@ export class BugsController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'TEAM_LEADER', 'DEVELOPER')
-  update(@Param('id') id: string, @Body() dto: UpdateBugDto) {
-    return this.bugsService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateBugDto, @CurrentUser() user: any) {
+    return this.bugsService.update(id, dto, user.id, user.role);
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'TEAM_LEADER')
-  remove(@Param('id') id: string) {
-    return this.bugsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.bugsService.remove(id, user.id, user.role);
   }
 
   @Post(':id/upvote')

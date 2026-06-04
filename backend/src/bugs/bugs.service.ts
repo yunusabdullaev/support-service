@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BugPriority, BugStatus } from '@prisma/client';
 
@@ -105,8 +105,12 @@ export class BugsService {
     });
   }
 
-  async update(id: string, dto: UpdateBugDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateBugDto, userId: string, userRole: string) {
+    const bug = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(userRole);
+    if (!isPrivileged && bug.createdById !== userId) {
+      throw new ForbiddenException('You can only edit your own bugs');
+    }
     return this.prisma.bug.update({
       where: { id },
       data: {
@@ -116,8 +120,12 @@ export class BugsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, userId: string, userRole: string) {
+    const bug = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER'].includes(userRole);
+    if (!isPrivileged && bug.createdById !== userId) {
+      throw new ForbiddenException('You can only delete your own bugs');
+    }
     return this.prisma.bug.delete({ where: { id } });
   }
 

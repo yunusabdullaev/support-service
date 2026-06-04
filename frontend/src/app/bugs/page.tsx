@@ -29,8 +29,11 @@ export default function BugsPage() {
 
   const qc = useQueryClient();
 
-  const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
-  const canDelete = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
+  const canEditItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+
+  const canDeleteItem = (createdById?: string) =>
+    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
 
   const upvoteMutation = useMutation({
     mutationFn: (id: string) => api.post(`/bugs/${id}/upvote`),
@@ -205,7 +208,7 @@ export default function BugsPage() {
                       {/* Action buttons */}
                       <td className="px-3 py-4">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {canEdit && (
+                          {canEditItem(bug.createdBy?.id) && (
                             <button
                               onClick={() => setEditBug(bug)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
@@ -214,7 +217,7 @@ export default function BugsPage() {
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {canDelete && (
+                          {canDeleteItem(bug.createdBy?.id) && (
                             <button
                               onClick={() => setDeleteId(bug.id)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"

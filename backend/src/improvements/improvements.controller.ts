@@ -69,9 +69,8 @@ export class ImprovementsController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'TEAM_LEADER', 'DEVELOPER')
-  update(@Param('id') id: string, @Body() dto: UpdateImprovementDto) {
-    return this.service.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateImprovementDto, @CurrentUser() user: any) {
+    return this.service.update(id, dto, user.id, user.role);
   }
 
   @Post(':id/upvote')
@@ -80,7 +79,7 @@ export class ImprovementsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.service.remove(id, user.id, user.role);
   }
 }

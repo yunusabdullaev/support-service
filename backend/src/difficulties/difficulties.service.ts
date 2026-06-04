@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DifficultyStatus } from '@prisma/client';
 
@@ -67,22 +67,29 @@ export class DifficultiesService {
     });
   }
 
-  async update(id: string, dto: UpdateDifficultyDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateDifficultyDto, userId: string, userRole: string) {
+    const item = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(userRole);
+    if (!isPrivileged && item.createdById !== userId) {
+      throw new ForbiddenException('You can only edit your own difficulties');
+    }
     return this.prisma.difficulty.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.status !== undefined && { status: dto.status }),
-        // Allow clearing or setting productId
         productId: dto.productId === '' ? null : dto.productId ?? undefined,
       },
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, userId: string, userRole: string) {
+    const item = await this.findOne(id);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER'].includes(userRole);
+    if (!isPrivileged && item.createdById !== userId) {
+      throw new ForbiddenException('You can only delete your own difficulties');
+    }
     return this.prisma.difficulty.delete({ where: { id } });
   }
 
