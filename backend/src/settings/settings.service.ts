@@ -39,16 +39,21 @@ export class SettingsService {
 
   async testTelegram() {
     const settings = await this.getTelegramSettings();
-    if (!settings.botToken || !settings.chatId) {
-      return { success: false, message: 'Bot token and chat ID are required' };
+    if (!settings.botToken) {
+      return { success: false, message: 'Bot token kiritilmagan' };
     }
-    const success = await this.telegramService.testConnection(
-      settings.botToken,
-      settings.chatId,
-    );
-    return {
-      success,
-      message: success ? 'Test message sent!' : 'Failed to send test message',
-    };
+    // If chatId is provided, send a test message; otherwise just verify the token via getMe
+    if (settings.chatId) {
+      const success = await this.telegramService.testConnection(settings.botToken, settings.chatId);
+      return { success, message: success ? 'Test xabar yuborildi!' : 'Xabar yuborishda xato' };
+    } else {
+      const valid = await this.telegramService.validateToken(settings.botToken);
+      return {
+        success: valid,
+        message: valid
+          ? '✅ Bot token to\'g\'ri! Chat ID qo\'shsangiz xabar ham yuboriladi.'
+          : '❌ Bot token noto\'g\'ri yoki bot topilmadi',
+      };
+    }
   }
 }

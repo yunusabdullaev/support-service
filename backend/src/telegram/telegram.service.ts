@@ -14,17 +14,18 @@ export class TelegramService {
 
   async sendMessage(text: string): Promise<boolean> {
     const settings = await this.getSettings();
-    if (!settings?.botToken || !settings?.chatId) {
-      // Fall back to env vars
-      const token = process.env.TELEGRAM_BOT_TOKEN;
-      const chatId = process.env.TELEGRAM_CHAT_ID;
-      if (!token || !chatId) {
-        this.logger.warn('Telegram not configured, skipping notification');
-        return false;
-      }
-      return this.sendTelegramMessage(token, chatId, text);
+    const token = settings?.botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = settings?.chatId || process.env.TELEGRAM_CHAT_ID;
+
+    if (!token) {
+      this.logger.warn('Telegram not configured (no token), skipping notification');
+      return false;
     }
-    return this.sendTelegramMessage(settings.botToken, settings.chatId, text);
+    if (!chatId) {
+      this.logger.warn('Telegram chat ID not set, skipping notification');
+      return false;
+    }
+    return this.sendTelegramMessage(token, chatId, text);
   }
 
   private async sendTelegramMessage(
@@ -84,7 +85,16 @@ export class TelegramService {
     return this.sendTelegramMessage(
       botToken,
       chatId,
-      '✅ <b>Hippo Support</b> — Telegram connection test successful!',
+      '✅ <b>Hippo Support</b> — Telegram ulanish tekshirildi!',
     );
+  }
+
+  async validateToken(botToken: string): Promise<boolean> {
+    try {
+      const res = await axios.get(`https://api.telegram.org/bot${botToken}/getMe`);
+      return res.data?.ok === true;
+    } catch {
+      return false;
+    }
   }
 }

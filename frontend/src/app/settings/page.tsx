@@ -268,11 +268,14 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('chat_id')}</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                        {t('chat_id')}
+                        <span className="ml-1.5 text-xs font-normal text-slate-500">(ixtiyoriy)</span>
+                      </label>
                       <input type="text" value={displayChatId} onChange={e => setForm(f => ({...f, chatId: e.target.value}))}
-                        placeholder="-100123456789"
+                        placeholder="-100123456789 (bo'sh qolsa ham bo'ladi)"
                         className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
-                      <p className="text-xs text-slate-500 mt-1">{t('chat_id_hint')}</p>
+                      <p className="text-xs text-slate-500 mt-1">Chat ID bo'lmasa, token tekshiriladi. Xabar yuborish uchun kerak.</p>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-t border-slate-800">
