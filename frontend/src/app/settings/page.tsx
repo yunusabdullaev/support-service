@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 import {
   Bot, CheckCircle2, AlertCircle, Settings2,
-  Shield, Moon, Sun, KeyRound
+  Shield, Moon, Sun, KeyRound, Eye, EyeOff
 } from 'lucide-react';
 
 function ChangePasswordForm() {
@@ -19,6 +19,9 @@ function ChangePasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => api.patch('/auth/change-password', { oldPassword, newPassword }),
@@ -61,35 +64,53 @@ function ChangePasswordForm() {
 
       <div>
         <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('current_password')}</label>
-        <input
-          required
-          type="password"
-          value={oldPassword}
-          onChange={e => setOldPassword(e.target.value)}
-          className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-        />
+        <div className="relative">
+          <input
+            required
+            type={showOld ? 'text' : 'password'}
+            value={oldPassword}
+            onChange={e => setOldPassword(e.target.value)}
+            className="w-full px-3 py-2.5 pr-10 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          />
+          <button type="button" onClick={() => setShowOld(v => !v)} tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+            {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('new_password')}</label>
-          <input
-            required
-            type="password"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
+          <div className="relative">
+            <input
+              required
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              className="w-full px-3 py-2.5 pr-10 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+            <button type="button" onClick={() => setShowNew(v => !v)} tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+              {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('confirm_password')}</label>
-          <input
-            required
-            type="password"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
+          <div className="relative">
+            <input
+              required
+              type={showConfirm ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2.5 pr-10 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+            <button type="button" onClick={() => setShowConfirm(v => !v)} tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
