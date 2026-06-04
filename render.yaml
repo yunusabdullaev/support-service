@@ -19,7 +19,7 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
       - key: FRONTEND_URL
-        value: https://hippo-support-frontend.onrender.com
+        sync: false
       - key: UPLOAD_DIR
         value: ./uploads
 
@@ -33,7 +33,7 @@ services:
     startCommand: npm run start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://hippo-support-backend.onrender.com
+        sync: false
 
 databases:
   # PostgreSQL Database Instance
