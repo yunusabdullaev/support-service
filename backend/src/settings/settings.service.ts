@@ -5,6 +5,7 @@ import { TelegramService } from '../telegram/telegram.service';
 export class UpdateTelegramDto {
   botToken?: string;
   chatId?: string;
+  recipients?: string[];
   isActive?: boolean;
 }
 
@@ -22,6 +23,7 @@ export class SettingsService {
         data: {
           botToken: process.env.TELEGRAM_BOT_TOKEN || '',
           chatId: process.env.TELEGRAM_CHAT_ID || '',
+          recipients: [],
           isActive: false,
         },
       });
@@ -42,18 +44,36 @@ export class SettingsService {
     if (!settings.botToken) {
       return { success: false, message: 'Bot token kiritilmagan' };
     }
-    // If chatId is provided, send a test message; otherwise just verify the token via getMe
-    if (settings.chatId) {
-      const success = await this.telegramService.testConnection(settings.botToken, settings.chatId);
-      return { success, message: success ? 'Test xabar yuborildi!' : 'Xabar yuborishda xato' };
-    } else {
+
+    // Collect all targets: chatId + recipients list
+    const targets: string[] = [];
+    if (settings.chatId) targets.push(settings.chatId);
+    (settings.recipients || []).forEach(r => {
+      if (r && !targets.includes(r)) targets.push(r);
+    });
+
+    if (targets.length === 0) {
+      // No chat IDs — just validate token
       const valid = await this.telegramService.validateToken(settings.botToken);
       return {
         success: valid,
         message: valid
-          ? '✅ Bot token to\'g\'ri! Chat ID qo\'shsangiz xabar ham yuboriladi.'
+          ? '✅ Bot token to\'g\'ri! Nomer qo\'shsangiz xabar yuboriladi.'
           : '❌ Bot token noto\'g\'ri yoki bot topilmadi',
       };
     }
+
+    const results = await Promise.all(
+      targets.map(chatId =>
+        this.telegramService.testConnection(settings.botToken, chatId)
+      )
+    );
+    const sent = results.filter(Boolean).length;
+    return {
+      success: sent > 0,
+      message: sent > 0
+        ? `✅ ${sent} ta raqamga test xabar yuborildi!`
+        : '❌ Xabar yuborishda xato',
+    };
   }
 }

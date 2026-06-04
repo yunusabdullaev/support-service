@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 import {
   Bot, CheckCircle2, AlertCircle, Settings2,
-  Shield, Moon, Sun, KeyRound, Eye, EyeOff
+  Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon
 } from 'lucide-react';
 
 function ChangePasswordForm() {
@@ -131,7 +131,9 @@ export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const qc = useQueryClient();
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [form, setForm] = useState({ botToken: '', chatId: '', isActive: false });
+  const [form, setForm] = useState<{ botToken: string; chatId: string; isActive: boolean; recipients?: string[] }>({ botToken: '', chatId: '', isActive: false });
+  const [recipients, setRecipients] = useState<string[]>([]);
+  const [newRecipient, setNewRecipient] = useState('');
 
   // Only run this query for ADMIN users to avoid 403/Forbidden errors on backend
   const isAdmin = user?.role === 'ADMIN';
@@ -157,6 +159,23 @@ export default function SettingsPage() {
   const displayToken = form.botToken || displaySettings.botToken || '';
   const displayChatId = form.chatId || displaySettings.chatId || '';
   const displayActive = form.isActive ?? displaySettings.isActive ?? false;
+
+  // Sync recipients from server
+  React.useEffect(() => {
+    if (settings?.recipients) setRecipients(settings.recipients);
+  }, [settings]);
+
+  const addRecipient = () => {
+    const val = newRecipient.trim();
+    if (val && !recipients.includes(val)) {
+      setRecipients(r => [...r, val]);
+    }
+    setNewRecipient('');
+  };
+
+  const removeRecipient = (idx: number) => {
+    setRecipients(r => r.filter((_, i) => i !== idx));
+  };
 
   return (
     <AppLayout>
@@ -278,6 +297,55 @@ export default function SettingsPage() {
                       <p className="text-xs text-slate-500 mt-1">Chat ID bo'lmasa, token tekshiriladi. Xabar yuborish uchun kerak.</p>
                     </div>
 
+                    {/* Recipients list */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                        Xabar oladiganlar
+                        <span className="ml-1.5 text-xs font-normal text-slate-500">(Telegram Chat ID)</span>
+                      </label>
+
+                      {/* Add new */}
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={newRecipient}
+                          onChange={e => setNewRecipient(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addRecipient())}
+                          placeholder="Chat ID yoki raqam (123456789)"
+                          className="flex-1 px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={addRecipient}
+                          disabled={!newRecipient.trim()}
+                          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* List */}
+                      {recipients.length === 0 ? (
+                        <p className="text-xs text-slate-600 italic py-2">Hali nomer qo'shilmagan</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {recipients.map((r, i) => (
+                            <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg">
+                              <span className="text-sm text-slate-300 font-mono">{r}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeRecipient(i)}
+                                className="p-0.5 text-slate-500 hover:text-red-400 transition-colors"
+                              >
+                                <XIcon className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1.5">Bot'dan /start bosib o'z Chat ID'ingizni toping: @userinfobot</p>
+                    </div>
+
                     <div className="flex items-center justify-between py-3 border-t border-slate-800">
                       <div>
                         <p className="text-sm font-medium text-slate-300">{t('enable_notifications')}</p>
@@ -302,7 +370,7 @@ export default function SettingsPage() {
                         {testMutation.isPending ? t('testing') : t('test_connection')}
                       </button>
                       <button type="button"
-                        onClick={() => updateMutation.mutate({ botToken: displayToken, chatId: displayChatId, isActive: displayActive })}
+                        onClick={() => updateMutation.mutate({ botToken: displayToken, chatId: displayChatId, isActive: displayActive, recipients })}
                         disabled={updateMutation.isPending}
                         className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
                         {updateMutation.isPending ? t('saving') : t('save')}

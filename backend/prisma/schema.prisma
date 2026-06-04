@@ -332,12 +332,13 @@ model KnowledgeArticle {
 }
 
 model TelegramSetting {
-  id        String   @id @default(cuid())
-  botToken  String
-  chatId    String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  botToken   String
+  chatId     String
+  recipients String[]
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("telegram_settings")
 }
