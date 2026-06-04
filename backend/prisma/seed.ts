@@ -35,7 +35,7 @@ async function main() {
   console.log('✅ Admin user created: yunusabdullaev0707@gmail.com');
 
   // Create standard products
-  await prisma.product.create({ data: { name: 'ERP Sales', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true } });
+  await prisma.product.create({ data: { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true } });
   await prisma.product.create({ data: { name: 'EDI', description: 'Elektron hujjat almashinuvi (Electronic Data Interchange)', isActive: true } });
   await prisma.product.create({ data: { name: 'EDO', description: 'Elektron hujjat oqimi (Электронный документооборот)', isActive: true } });
 

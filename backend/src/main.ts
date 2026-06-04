@@ -69,7 +69,7 @@ async function bootstrap() {
 
       const productCount = await prisma.product.count();
       if (productCount === 0) {
-        await prisma.product.create({ data: { name: 'ERP Sales', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true } });
+        await prisma.product.create({ data: { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true } });
         await prisma.product.create({ data: { name: 'EDI', description: 'Elektron hujjat almashinuvi (Electronic Data Interchange)', isActive: true } });
         await prisma.product.create({ data: { name: 'EDO', description: 'Elektron hujjat oqimi (Электронный документооборот)', isActive: true } });
         console.log('✅ Default products created.');
