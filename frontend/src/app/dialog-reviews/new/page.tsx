@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { Product, User } from '@/types';
 import { ArrowLeft, Star } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@/lib/i18n';
 
 function ScoreSelector({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
@@ -31,6 +32,7 @@ function ScoreSelector({ label, value, onChange }: { label: string; value: numbe
 export default function NewDialogReviewPage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [form, setForm] = useState({
     operatorId: '',
     productId: '',
@@ -78,8 +80,8 @@ export default function NewDialogReviewPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white">New Dialog Review</h1>
-            <p className="text-slate-400 text-sm">Evaluate an operator's dialog</p>
+            <h1 className="text-2xl font-bold text-white">{t('new_review_title')}</h1>
+            <p className="text-slate-400 text-sm">{t('new_review_subtitle')}</p>
           </div>
         </div>
 
@@ -87,42 +89,42 @@ export default function NewDialogReviewPage() {
           {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>}
 
           <div className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-slate-300">Basic Info</h3>
+            <h3 className="text-sm font-semibold text-slate-300">{t('basic_info')}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Operator *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('operator')} *</label>
                 <select required value={form.operatorId} onChange={e => setForm({...form, operatorId: e.target.value})}
                   className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                  <option value="">Select operator</option>
+                  <option value="">{t('select_operator')}</option>
                   {operators.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Product</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('product')}</label>
                 <select value={form.productId} onChange={e => setForm({...form, productId: e.target.value})}
                   className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                  <option value="">Select product</option>
+                  <option value="">{t('select_product')}</option>
                   {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Client Name</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client')}</label>
                 <input type="text" value={form.clientName} onChange={e => setForm({...form, clientName: e.target.value})}
-                  placeholder="Client name or ID"
+                  placeholder={t('dialog_client_placeholder')}
                   className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Review Date</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('review_date')}</label>
                 <input type="date" value={form.reviewDate} onChange={e => setForm({...form, reviewDate: e.target.value})}
                   className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Dialog Text</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('dialog_text')}</label>
               <textarea value={form.dialogText} onChange={e => setForm({...form, dialogText: e.target.value})}
-                rows={6} placeholder="Paste the dialog transcript here..."
+                rows={6} placeholder={t('paste_dialog')}
                 className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none" />
             </div>
           </div>
@@ -130,44 +132,44 @@ export default function NewDialogReviewPage() {
           {/* Scoring */}
           <div className="glass-card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-300">Evaluation Scores</h3>
+              <h3 className="text-sm font-semibold text-slate-300">{t('evaluation_scores')}</h3>
               <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 text-yellow-400" />
                 <span className="text-xl font-bold text-white">{totalScore}</span>
                 <span className="text-slate-500">/10</span>
               </div>
             </div>
-            <ScoreSelector label="1. First Response Quality" value={form.firstResponseScore} onChange={v => setScore('firstResponseScore', v)} />
-            <ScoreSelector label="2. Understanding Client's Problem" value={form.understandingScore} onChange={v => setScore('understandingScore', v)} />
-            <ScoreSelector label="3. Solution Quality" value={form.solutionScore} onChange={v => setScore('solutionScore', v)} />
-            <ScoreSelector label="4. Communication Style" value={form.communicationScore} onChange={v => setScore('communicationScore', v)} />
-            <ScoreSelector label="5. Closing the Dialog" value={form.closingScore} onChange={v => setScore('closingScore', v)} />
+            <ScoreSelector label={t('first_response')} value={form.firstResponseScore} onChange={v => setScore('firstResponseScore', v)} />
+            <ScoreSelector label={t('understanding')} value={form.understandingScore} onChange={v => setScore('understandingScore', v)} />
+            <ScoreSelector label={t('solution')} value={form.solutionScore} onChange={v => setScore('solutionScore', v)} />
+            <ScoreSelector label={t('communication')} value={form.communicationScore} onChange={v => setScore('communicationScore', v)} />
+            <ScoreSelector label={t('closing')} value={form.closingScore} onChange={v => setScore('closingScore', v)} />
           </div>
 
           {/* Notes */}
           <div className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-slate-300">Notes</h3>
+            <h3 className="text-sm font-semibold text-slate-300">{t('notes')}</h3>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Mistakes Found</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('mistakes')}</label>
               <textarea value={form.mistakes} onChange={e => setForm({...form, mistakes: e.target.value})}
-                rows={2} placeholder="Describe any mistakes or areas for improvement"
+                rows={2} placeholder={t('mistakes_placeholder')}
                 className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Additional Comment</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('comment')}</label>
               <textarea value={form.comment} onChange={e => setForm({...form, comment: e.target.value})}
-                rows={2} placeholder="Overall assessment and recommendations"
+                rows={2} placeholder={t('comment_placeholder')}
                 className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none" />
             </div>
           </div>
 
           <div className="flex gap-3">
             <Link href="/dialog-reviews" className="flex-1 py-2.5 text-center bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors">
-              Cancel
+              {t('cancel')}
             </Link>
             <button type="submit" disabled={mutation.isPending}
               className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
-              {mutation.isPending ? 'Saving...' : 'Save Review'}
+              {mutation.isPending ? t('saving') : t('save_review')}
             </button>
           </div>
         </form>

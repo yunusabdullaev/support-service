@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { ArrowLeft, Star, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@/lib/i18n';
 
 function ScoreRow({ label, score, max = 2 }: { label: string; score: number; max?: number }) {
   const pct = (score / max) * 100;
@@ -27,13 +28,14 @@ function ScoreRow({ label, score, max = 2 }: { label: string; score: number; max
 
 export default function DialogReviewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
+  const { t } = useI18n();
   const { data: review, isLoading } = useQuery<DialogReview>({
     queryKey: ['review', id],
     queryFn: () => api.get(`/dialog-reviews/${id}`).then(r => r.data),
   });
 
   if (isLoading) return <AppLayout allowedRoles={['ADMIN', 'TEAM_LEADER']}><div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div></AppLayout>;
-  if (!review) return <AppLayout allowedRoles={['ADMIN', 'TEAM_LEADER']}><div className="text-slate-400">Review not found</div></AppLayout>;
+  if (!review) return <AppLayout allowedRoles={['ADMIN', 'TEAM_LEADER']}><div className="text-slate-400">{t('no_reviews')}</div></AppLayout>;
 
   return (
     <AppLayout allowedRoles={['ADMIN', 'TEAM_LEADER']}>
@@ -50,11 +52,11 @@ export default function DialogReviewDetailPage({ params }: { params: Promise<{ i
             <h1 className="text-xl font-bold text-white">
               {review.operator?.fullName} — {review.clientName}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">{formatDate(review.reviewDate)} · Reviewed by {review.reviewedBy?.fullName}</p>
+            <p className="text-slate-500 text-sm mt-0.5">{formatDate(review.reviewDate)} · {t('reviewed_by')} {review.reviewedBy?.fullName}</p>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-white">{review.totalScore}</p>
-            <p className="text-sm text-slate-500">/10 score</p>
+            <p className="text-sm text-slate-500">/10</p>
           </div>
         </div>
 
@@ -63,20 +65,20 @@ export default function DialogReviewDetailPage({ params }: { params: Promise<{ i
             {/* Scores */}
             <div className="glass-card p-5">
               <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-400" /> Evaluation Scores
+                <Star className="w-4 h-4 text-yellow-400" /> {t('evaluation_scores')}
               </h3>
-              <ScoreRow label="1. First Response Quality" score={review.firstResponseScore} />
-              <ScoreRow label="2. Understanding Problem" score={review.understandingScore} />
-              <ScoreRow label="3. Solution Quality" score={review.solutionScore} />
-              <ScoreRow label="4. Communication Style" score={review.communicationScore} />
-              <ScoreRow label="5. Closing the Dialog" score={review.closingScore} />
+              <ScoreRow label={t('first_response')} score={review.firstResponseScore} />
+              <ScoreRow label={t('understanding')} score={review.understandingScore} />
+              <ScoreRow label={t('solution')} score={review.solutionScore} />
+              <ScoreRow label={t('communication')} score={review.communicationScore} />
+              <ScoreRow label={t('closing')} score={review.closingScore} />
             </div>
 
             {/* Dialog */}
             {review.dialogText && (
               <div className="glass-card p-5">
                 <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" /> Dialog Transcript
+                  <MessageSquare className="w-4 h-4" /> {t('dialog_transcript')}
                 </h3>
                 <div className="text-sm text-slate-300 whitespace-pre-wrap bg-slate-900/60 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-xs leading-relaxed">
                   {review.dialogText}
@@ -88,13 +90,13 @@ export default function DialogReviewDetailPage({ params }: { params: Promise<{ i
           <div className="space-y-4">
             {review.mistakes && (
               <div className="glass-card p-5">
-                <h3 className="text-sm font-semibold text-red-400 mb-2">❌ Mistakes Found</h3>
+                <h3 className="text-sm font-semibold text-red-400 mb-2">❌ {t('mistakes')}</h3>
                 <p className="text-sm text-slate-300">{review.mistakes}</p>
               </div>
             )}
             {review.comment && (
               <div className="glass-card p-5">
-                <h3 className="text-sm font-semibold text-slate-300 mb-2">💬 Comment</h3>
+                <h3 className="text-sm font-semibold text-slate-300 mb-2">💬 {t('comment')}</h3>
                 <p className="text-sm text-slate-300">{review.comment}</p>
               </div>
             )}

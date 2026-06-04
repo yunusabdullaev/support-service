@@ -147,6 +147,12 @@ const translations = {
     paste_dialog: 'Dialog transkripsiyasini bu yerga joylashtiring...',
     all_operators: 'Barcha operatorlar',
     filter_operator: 'Operator bo\'yicha filtr:',
+    basic_info: 'Asosiy ma\'lumotlar',
+    notes: 'Izohlar',
+    select_operator: 'Operatorni tanlang',
+    dialog_client_placeholder: 'Mijoz ismi yoki ID',
+    mistakes_placeholder: 'Kamchiliklar yoki yaxshilash kerak bo\'lgan jihatlarni yozing',
+    comment_placeholder: 'Umumiy baho va tavsiyalar',
 
     // Improvements
     improvements_title: 'Taklif so\'rovlari',
@@ -444,6 +450,12 @@ const translations = {
     paste_dialog: 'Вставьте транскрипт диалога сюда...',
     all_operators: 'Все операторы',
     filter_operator: 'Фильтр по оператору:',
+    basic_info: 'Основная информация',
+    notes: 'Примечания',
+    select_operator: 'Выберите оператора',
+    dialog_client_placeholder: 'Имя клиента или ID',
+    mistakes_placeholder: 'Опишите ошибки или области для улучшения',
+    comment_placeholder: 'Общая оценка и рекомендации',
 
     improvements_title: 'Запросы на улучшение',
     requests: 'запросов',
@@ -730,6 +742,12 @@ const translations = {
     paste_dialog: 'Paste the dialog transcript here...',
     all_operators: 'All Operators',
     filter_operator: 'Filter by operator:',
+    basic_info: 'Basic Info',
+    notes: 'Notes',
+    select_operator: 'Select operator',
+    dialog_client_placeholder: 'Client name or ID',
+    mistakes_placeholder: 'Describe any mistakes or areas for improvement',
+    comment_placeholder: 'Overall assessment and recommendations',
 
     improvements_title: 'Improvement Requests',
     requests: 'requests',
