@@ -38,6 +38,7 @@ export interface Bug {
   actualResult?: string;
   priority: BugPriority;
   status: BugStatus;
+  reportedByClientsCount: number;
   assignedTo?: { id: string; fullName: string };
   createdBy?: { id: string; fullName: string };
   deadline?: string;

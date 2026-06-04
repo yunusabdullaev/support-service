@@ -63,6 +63,11 @@ export class BugsController {
     return this.bugsService.remove(id);
   }
 
+  @Post(':id/upvote')
+  upvote(@Param('id') id: string) {
+    return this.bugsService.upvote(id);
+  }
+
   @Post(':id/comments')
   addComment(
     @Param('id') id: string,

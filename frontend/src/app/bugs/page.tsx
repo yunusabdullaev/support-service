@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Bug, BugStatus, BugPriority } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
-import { Plus, Search, Clock, Bug as BugIcon, Download } from 'lucide-react';
+import { Plus, Search, Clock, Bug as BugIcon, Download, UserPlus, Check } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BugsPage() {
@@ -20,6 +20,18 @@ export default function BugsPage() {
   const [priorityFilter, setPriorityFilter] = useState<BugPriority | ''>('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
+
+  const qc = useQueryClient();
+
+  const upvoteMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/bugs/${id}/upvote`),
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ['bugs'] });
+      setJustUpvoted(id);
+      setTimeout(() => setJustUpvoted(null), 1500);
+    },
+  });
 
   const handleExportExcel = () => {
     const params = new URLSearchParams();
@@ -115,7 +127,7 @@ export default function BugsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">
-                    {[t('bug_title'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created')].map(h => (
+                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created')].map(h => (
                       <th key={h} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
                     ))}
                   </tr>
@@ -123,11 +135,40 @@ export default function BugsPage() {
                 <tbody>
                   {filtered.map(bug => (
                     <tr key={bug.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                      <td className="px-5 py-4">
-                        <Link href={`/bugs/${bug.id}`} className="group">
+                      <td className="px-5 py-4 max-w-xs">
+                        <Link href={`/bugs/${bug.id}`} className="group block">
                           <p className="text-sm font-medium text-slate-200 group-hover:text-indigo-400 transition-colors">{bug.title}</p>
-                          {bug.module && <p className="text-xs text-slate-500 mt-0.5">{bug.module}</p>}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                            {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded">{bug.module}</span>}
+                            <span className="text-xs text-slate-400 line-clamp-1 flex-1">{bug.description}</span>
+                          </div>
                         </Link>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-semibold tabular-nums transition-colors ${
+                            justUpvoted === bug.id ? 'text-emerald-400' : 'text-slate-300'
+                          }`}>
+                            {bug.reportedByClientsCount}
+                          </span>
+                          <button
+                            onClick={() => upvoteMutation.mutate(bug.id)}
+                            disabled={upvoteMutation.isPending && upvoteMutation.variables === bug.id}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center border font-bold transition-all duration-200 ${
+                              justUpvoted === bug.id
+                                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
+                                : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-indigo-500/20 hover:border-indigo-500 hover:text-indigo-400 hover:scale-105'
+                            }`}
+                          >
+                            {justUpvoted === bug.id ? (
+                              <Check className="w-3.5 h-3.5" />
+                            ) : upvoteMutation.isPending && upvoteMutation.variables === bug.id ? (
+                              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <span className="text-[10px] font-extrabold">+1</span>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-400">{bug.product?.name}</td>
                       <td className="px-5 py-4"><PriorityBadge priority={bug.priority} /></td>

@@ -13,6 +13,7 @@ export class CreateBugDto {
   priority?: BugPriority;
   assignedToId?: string;
   deadline?: string;
+  reportedByClientsCount?: number;
 }
 
 export class UpdateBugDto {
@@ -94,6 +95,7 @@ export class BugsService {
         priority: dto.priority || 'MEDIUM',
         assignedToId: dto.assignedToId,
         deadline: dto.deadline ? new Date(dto.deadline) : undefined,
+        reportedByClientsCount: dto.reportedByClientsCount ?? 1,
         createdById,
       },
       include: {
@@ -117,6 +119,15 @@ export class BugsService {
   async remove(id: string) {
     await this.findOne(id);
     return this.prisma.bug.delete({ where: { id } });
+  }
+
+  async upvote(id: string) {
+    await this.findOne(id);
+    return this.prisma.bug.update({
+      where: { id },
+      data: { reportedByClientsCount: { increment: 1 } },
+      select: { id: true, reportedByClientsCount: true },
+    });
   }
 
   async addComment(bugId: string, userId: string, dto: CreateCommentDto) {

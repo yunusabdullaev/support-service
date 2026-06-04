@@ -170,6 +170,7 @@ model Bug {
   actualResult     String?     @db.Text
   priority         BugPriority @default(MEDIUM)
   status           BugStatus   @default(NEW)
+  reportedByClientsCount Int  @default(1)
   assignedToId     String?
   createdById      String
   deadline         DateTime?
