@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { Phone, Zap, ArrowRight } from 'lucide-react';
+import { Phone, Zap, ArrowRight, X } from 'lucide-react';
 
 export function PhoneModal() {
-  const { needsPhone, savePhone } = useAuth();
+  const { needsPhone, savePhone, skipPhone } = useAuth();
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +32,6 @@ export function PhoneModal() {
 
   const formatPhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 12);
-    // Format: 998 90 123 45 67
     if (digits.length <= 3) return digits;
     if (digits.length <= 5) return `${digits.slice(0,3)} ${digits.slice(3)}`;
     if (digits.length <= 8) return `${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5)}`;
@@ -41,22 +40,24 @@ export function PhoneModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      {/* Background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
-      </div>
-
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-sm relative">
+        {/* Close / Skip button */}
+        <button
+          onClick={skipPhone}
+          className="absolute -top-10 right-0 flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+        >
+          Keyinroq <X className="w-4 h-4" />
+        </button>
+
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 mb-4 shadow-lg shadow-indigo-900/50">
-            <Zap className="w-7 h-7 text-white" />
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-600 mb-3 shadow-lg shadow-indigo-900/50">
+            <Zap className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-white">Telefon raqamingiz</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Tizimga to'liq kirish uchun raqamingizni kiriting
+          <h1 className="text-lg font-bold text-white">Telefon raqamingiz</h1>
+          <p className="text-slate-400 text-xs mt-1">
+            Telegram xabarnomalar uchun raqamingizni kiriting
           </p>
         </div>
 
@@ -77,7 +78,6 @@ export function PhoneModal() {
                 <input
                   id="phone-input"
                   type="tel"
-                  required
                   autoFocus
                   value={phone}
                   onChange={e => setPhone(formatPhone(e.target.value))}
@@ -85,22 +85,29 @@ export function PhoneModal() {
                   className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm tracking-wider"
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1.5">
-                Format: 998 XX XXX XX XX
-              </p>
+              <p className="text-xs text-slate-500 mt-1.5">Format: 998 XX XXX XX XX</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || phone.replace(/\D/g, '').length < 9}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>Davom etish <ArrowRight className="w-4 h-4" /></>
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={skipPhone}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm font-medium rounded-xl transition-colors"
+              >
+                Keyinroq
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || phone.replace(/\D/g, '').length < 9}
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Saqlash <ArrowRight className="w-4 h-4" /></>
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

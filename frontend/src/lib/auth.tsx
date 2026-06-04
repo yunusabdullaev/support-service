@@ -13,6 +13,7 @@ interface AuthContextType {
   isLoading: boolean;
   needsPhone: boolean;
   savePhone: (phone: string) => Promise<void>;
+  skipPhone: () => void;
   refreshUser: () => Promise<void>;
 }
 
@@ -43,10 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('user', JSON.stringify(data.user));
     setToken(data.access_token);
     setUser(data.user);
+    // Always go to dashboard — phone modal appears as an overlay if needed
+    router.push('/dashboard');
     if (!data.user.phone) {
       setNeedsPhone(true);
-    } else {
-      router.push('/dashboard');
     }
   };
 
@@ -56,7 +57,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('user', JSON.stringify(updated));
     setUser(updated);
     setNeedsPhone(false);
-    router.push('/dashboard');
+  };
+
+  const skipPhone = () => {
+    setNeedsPhone(false);
   };
 
   const refreshUser = async () => {
@@ -77,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading, needsPhone, savePhone, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading, needsPhone, savePhone, skipPhone, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
