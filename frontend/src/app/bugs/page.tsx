@@ -14,6 +14,7 @@ import {
   UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save
 } from 'lucide-react';
 import Link from 'next/link';
+import { UndoToast } from '@/components/ui/UndoToast';
 
 export default function BugsPage() {
   const { t } = useI18n();
@@ -24,6 +25,7 @@ export default function BugsPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
+  const [undoId, setUndoId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editBug, setEditBug] = useState<Bug | null>(null);
 
@@ -40,7 +42,16 @@ export default function BugsPage() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['bugs'] });
       setJustUpvoted(id);
+      setUndoId(id);
       setTimeout(() => setJustUpvoted(null), 1500);
+    },
+  });
+
+  const downvoteMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/bugs/${id}/downvote`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['bugs'] });
+      setUndoId(null);
     },
   });
 
@@ -273,6 +284,15 @@ export default function BugsPage() {
           onClose={() => setEditBug(null)}
           onSave={(data) => updateMutation.mutate({ id: editBug.id, data })}
           isPending={updateMutation.isPending}
+        />
+      )}
+
+      {/* Undo Toast */}
+      {undoId && (
+        <UndoToast
+          message="+1 qo'shildi"
+          onUndo={() => downvoteMutation.mutate(undoId)}
+          onDismiss={() => setUndoId(null)}
         />
       )}
     </AppLayout>

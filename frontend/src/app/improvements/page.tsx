@@ -13,6 +13,7 @@ import {
   Download, Edit3, Trash2, X, Save, AlertCircle, Phone, User, Clock, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { UndoToast } from '@/components/ui/UndoToast';
 import { useAuth } from '@/lib/auth';
 
 export default function ImprovementsPage() {
@@ -28,6 +29,7 @@ export default function ImprovementsPage() {
   const [detailItem, setDetailItem] = useState<ImprovementRequest | null>(null);
   const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
   const [upvotePhone, setUpvotePhone] = useState('');
+  const [undoUpvoteId, setUndoUpvoteId] = useState<string | null>(null);
 
   const canViewDetail = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '');
 
@@ -62,12 +64,21 @@ export default function ImprovementsPage() {
   const upvoteMutation = useMutation({
     mutationFn: ({ id, phone }: { id: string; phone: string }) =>
       api.post(`/improvements/${id}/upvote`, { phone }),
-    onSuccess: (_, { id }) => {
+    onSuccess: (data, { id }) => {
       qc.invalidateQueries({ queryKey: ['improvements'] });
       setJustUpvoted(id);
       setUpvoteTarget(null);
       setUpvotePhone('');
+      setUndoUpvoteId(data.data?.id || null);
       setTimeout(() => setJustUpvoted(null), 1500);
+    },
+  });
+
+  const undoUpvoteMutation = useMutation({
+    mutationFn: (upvoteId: string) => api.delete(`/improvements/upvotes/${upvoteId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['improvements'] });
+      setUndoUpvoteId(null);
     },
   });
 
@@ -350,6 +361,15 @@ export default function ImprovementsPage() {
           onDelete={() => { setDeleteId(detailItem.id); setDetailItem(null); }}
           canEdit={canEditItem(detailItem.createdBy?.id)}
           canDelete={canDeleteItem(detailItem.createdBy?.id)}
+        />
+      )}
+
+      {/* Undo Toast */}
+      {undoUpvoteId && (
+        <UndoToast
+          message="+1 qo'shildi"
+          onUndo={() => undoUpvoteMutation.mutate(undoUpvoteId)}
+          onDismiss={() => setUndoUpvoteId(null)}
         />
       )}
     </AppLayout>

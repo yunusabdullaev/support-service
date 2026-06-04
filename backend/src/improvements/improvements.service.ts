@@ -99,6 +99,21 @@ export class ImprovementsService {
     return upvote;
   }
 
+  async undoUpvote(upvoteId: string) {
+    const upvote = await this.prisma.improvementUpvote.findUnique({
+      where: { id: upvoteId },
+    });
+    if (!upvote) return { success: false };
+    await this.prisma.$transaction([
+      this.prisma.improvementUpvote.delete({ where: { id: upvoteId } }),
+      this.prisma.improvementRequest.update({
+        where: { id: upvote.improvementId },
+        data: { requestedByClientsCount: { decrement: 1 } },
+      }),
+    ]);
+    return { success: true };
+  }
+
   count(status?: ImprovementStatus) {
     return this.prisma.improvementRequest.count({
       where: status ? { status } : undefined,

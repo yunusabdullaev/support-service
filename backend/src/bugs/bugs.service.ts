@@ -138,6 +138,16 @@ export class BugsService {
     });
   }
 
+  async downvote(id: string) {
+    const item = await this.findOne(id);
+    if (item.reportedByClientsCount <= 0) return { id, reportedByClientsCount: 0 };
+    return this.prisma.bug.update({
+      where: { id },
+      data: { reportedByClientsCount: { decrement: 1 } },
+      select: { id: true, reportedByClientsCount: true },
+    });
+  }
+
   async addComment(bugId: string, userId: string, dto: CreateCommentDto) {
     await this.findOne(bugId);
     return this.prisma.bugComment.create({

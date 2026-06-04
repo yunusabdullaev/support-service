@@ -59,4 +59,9 @@ export class DifficultiesController {
   upvote(@Param('id') id: string) {
     return this.service.upvote(id);
   }
+
+  @Post(':id/downvote')
+  downvote(@Param('id') id: string) {
+    return this.service.downvote(id);
+  }
 }

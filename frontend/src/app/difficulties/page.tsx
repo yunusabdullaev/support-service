@@ -15,6 +15,7 @@ import {
   Edit3, Trash2, Save, AlertCircle, Check
 } from 'lucide-react';
 import Link from 'next/link';
+import { UndoToast } from '@/components/ui/UndoToast';
 
 const STATUS_ICONS: Record<DifficultyStatus, React.ReactNode> = {
   NEW: <CircleDot className="w-4 h-4 text-blue-400" />,
@@ -45,6 +46,7 @@ export default function DifficultiesPage() {
   const [editForm, setEditForm] = useState({ title: '', productId: '', description: '' });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
+  const [undoId, setUndoId] = useState<string | null>(null);
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canEditItem = (createdById?: string) =>
@@ -74,7 +76,16 @@ export default function DifficultiesPage() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['difficulties'] });
       setJustUpvoted(id);
+      setUndoId(id);
       setTimeout(() => setJustUpvoted(null), 1500);
+    },
+  });
+
+  const downvoteMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/difficulties/${id}/downvote`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['difficulties'] });
+      setUndoId(null);
     },
   });
 
@@ -473,6 +484,15 @@ export default function DifficultiesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Undo Toast */}
+      {undoId && (
+        <UndoToast
+          message="+1 qo'shildi"
+          onUndo={() => downvoteMutation.mutate(undoId)}
+          onDismiss={() => setUndoId(null)}
+        />
       )}
     </AppLayout>
   );

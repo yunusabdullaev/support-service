@@ -102,6 +102,16 @@ export class DifficultiesService {
     });
   }
 
+  async downvote(id: string) {
+    const item = await this.findOne(id);
+    if (item.reportedByCount <= 0) return { id, reportedByCount: 0 };
+    return this.prisma.difficulty.update({
+      where: { id },
+      data: { reportedByCount: { decrement: 1 } },
+      select: { id: true, reportedByCount: true },
+    });
+  }
+
   count(status?: DifficultyStatus) {
     return this.prisma.difficulty.count({
       where: status ? { status } : undefined,

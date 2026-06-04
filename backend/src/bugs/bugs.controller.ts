@@ -66,6 +66,11 @@ export class BugsController {
     return this.bugsService.upvote(id);
   }
 
+  @Post(':id/downvote')
+  downvote(@Param('id') id: string) {
+    return this.bugsService.downvote(id);
+  }
+
   @Post(':id/comments')
   addComment(
     @Param('id') id: string,

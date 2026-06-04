@@ -78,6 +78,11 @@ export class ImprovementsController {
     return this.service.upvote(id, phone || '');
   }
 
+  @Delete('upvotes/:upvoteId')
+  undoUpvote(@Param('upvoteId') upvoteId: string) {
+    return this.service.undoUpvote(upvoteId);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.service.remove(id, user.id, user.role);
