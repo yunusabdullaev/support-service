@@ -8,7 +8,9 @@ import {
   Param,
   UseGuards,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -33,6 +35,27 @@ export class ImprovementsController {
     @Query('to') to?: string,
   ) {
     return this.service.findAll({ productId, status, from, to });
+  }
+
+  @Get('export/excel')
+  @Roles('ADMIN', 'TEAM_LEADER')
+  async exportExcel(
+    @Res() res: Response,
+    @Query('productId') productId?: string,
+    @Query('status') status?: ImprovementStatus,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const buffer = await this.service.exportExcel({ productId, status, from, to });
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=improvements-report.xlsx',
+    );
+    res.send(buffer);
   }
 
   @Get(':id')

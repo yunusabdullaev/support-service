@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ImprovementStatus } from '@prisma/client';
+import * as ExcelJS from 'exceljs';
 
 export class CreateImprovementDto {
   title: string;
@@ -86,5 +87,52 @@ export class ImprovementsService {
     return this.prisma.improvementRequest.count({
       where: status ? { status } : undefined,
     });
+  }
+
+  async exportExcel(filters?: {
+    productId?: string;
+    status?: ImprovementStatus;
+    from?: string;
+    to?: string;
+  }) {
+    const improvements = await this.findAll(filters);
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Improvements');
+
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 15 },
+      { header: 'Title', key: 'title', width: 30 },
+      { header: 'Product', key: 'productName', width: 20 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Requested Clients', key: 'requestedByClientsCount', width: 18 },
+      { header: 'Source', key: 'source', width: 20 },
+      { header: 'Business Value', key: 'businessValue', width: 30 },
+      { header: 'Created By', key: 'createdBy', width: 25 },
+      { header: 'Created At', key: 'createdAt', width: 20 },
+    ];
+
+    sheet.getRow(1).font = { bold: true };
+    sheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E293B' },
+    };
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    improvements.forEach((i) => {
+      sheet.addRow({
+        id: i.id.slice(-8),
+        title: i.title,
+        productName: i.product?.name || '—',
+        status: i.status,
+        requestedByClientsCount: i.requestedByClientsCount,
+        source: i.source || '—',
+        businessValue: i.businessValue || '—',
+        createdBy: i.createdBy?.fullName || '—',
+        createdAt: new Date(i.createdAt).toLocaleDateString('ru-RU'),
+      });
+    });
+
+    return workbook.xlsx.writeBuffer();
   }
 }

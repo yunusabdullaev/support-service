@@ -8,16 +8,31 @@ import { ImprovementRequest } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
-import { Plus, Lightbulb, Users, TrendingUp, UserPlus, Check } from 'lucide-react';
+import { Plus, Lightbulb, Users, TrendingUp, UserPlus, Check, Download } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth';
 
 export default function ImprovementsPage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('');
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+
+  const handleExportExcel = () => {
+    const params = new URLSearchParams();
+    if (statusFilter) params.set('status', statusFilter);
+    if (fromDate) params.set('from', fromDate);
+    if (toDate) params.set('to', toDate);
+
+    const token = localStorage.getItem('token');
+    if (token) params.set('token', token);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    window.open(`${API_URL}/improvements/export/excel?${params.toString()}`, '_blank');
+  };
 
   const { data: improvements = [], isLoading } = useQuery<ImprovementRequest[]>({
     queryKey: ['improvements', statusFilter, fromDate, toDate],
@@ -51,12 +66,22 @@ export default function ImprovementsPage() {
             <h1 className="text-2xl font-bold text-white">{t('improvements_title')}</h1>
             <p className="text-slate-400 text-sm mt-0.5">{improvements.length} {t('requests')}</p>
           </div>
-          <Link
-            href="/improvements/new"
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" /> {t('new_improvement')}
-          </Link>
+          <div className="flex gap-2">
+            {(user?.role === 'TEAM_LEADER' || user?.role === 'ADMIN') && (
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-emerald-950/20"
+              >
+                <Download className="w-4 h-4" /> {t('export_excel')}
+              </button>
+            )}
+            <Link
+              href="/improvements/new"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" /> {t('new_improvement')}
+            </Link>
+          </div>
         </div>
 
         {/* Filters bar */}

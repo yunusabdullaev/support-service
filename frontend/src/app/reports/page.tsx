@@ -62,11 +62,19 @@ export default function ReportsPage() {
   }));
 
   const handleExportExcel = () => {
-    window.open('http://localhost:4000/reports/export/excel', '_blank');
+    const token = localStorage.getItem('token');
+    const url = new URLSearchParams();
+    if (token) url.set('token', token);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    window.open(`${API_URL}/reports/export/excel?${url.toString()}`, '_blank');
   };
 
   const handleExportPdf = () => {
-    window.open('http://localhost:4000/reports/export/pdf', '_blank');
+    const token = localStorage.getItem('token');
+    const url = new URLSearchParams();
+    if (token) url.set('token', token);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    window.open(`${API_URL}/reports/export/pdf?${url.toString()}`, '_blank');
   };
 
   return (

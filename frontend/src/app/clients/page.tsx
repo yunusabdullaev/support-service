@@ -40,7 +40,12 @@ export default function ClientsPage() {
     if (search) params.set('search', search);
     if (fromDate) params.set('from', fromDate);
     if (toDate) params.set('to', toDate);
-    window.open(`http://localhost:4000/clients/export/excel?${params.toString()}`, '_blank');
+
+    const token = localStorage.getItem('token');
+    if (token) params.set('token', token);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    window.open(`${API_URL}/clients/export/excel?${params.toString()}`, '_blank');
   };
   const [editClient, setEditClient] = useState<Client | null>(null);
 

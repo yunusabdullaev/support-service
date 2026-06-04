@@ -28,7 +28,12 @@ export default function BugsPage() {
     if (search) params.set('search', search);
     if (fromDate) params.set('from', fromDate);
     if (toDate) params.set('to', toDate);
-    window.open(`http://localhost:4000/reports/export/excel?${params.toString()}`, '_blank');
+
+    const token = localStorage.getItem('token');
+    if (token) params.set('token', token);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    window.open(`${API_URL}/reports/export/excel?${params.toString()}`, '_blank');
   };
 
   const { data: bugs = [], isLoading } = useQuery<Bug[]>({

@@ -202,13 +202,16 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
                   <Paperclip className="w-4 h-4" /> Attachments
                 </h3>
                 <div className="space-y-2">
-                  {bug.attachments.map(a => (
-                    <a key={a.id} href={`http://localhost:4000${a.fileUrl}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-2 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors text-xs text-indigo-400">
-                      <Paperclip className="w-3 h-3" />
-                      {a.fileName}
-                    </a>
-                  ))}
+                  {bug.attachments.map(a => {
+                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                    return (
+                      <a key={a.id} href={`${API_URL}${a.fileUrl}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors text-xs text-indigo-400">
+                        <Paperclip className="w-3 h-3" />
+                        {a.fileName}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
