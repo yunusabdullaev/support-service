@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Bug, BugStatus, BugPriority } from '@/types';
+import { Bug, BugStatus, BugPriority, Product } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
-import { Plus, Search, Clock, Bug as BugIcon, Download, UserPlus, Check } from 'lucide-react';
+import {
+  Plus, Search, Clock, Bug as BugIcon, Download,
+  UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function BugsPage() {
@@ -21,8 +24,13 @@ export default function BugsPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editBug, setEditBug] = useState<Bug | null>(null);
 
   const qc = useQueryClient();
+
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
+  const canDelete = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
 
   const upvoteMutation = useMutation({
     mutationFn: (id: string) => api.post(`/bugs/${id}/upvote`),
@@ -33,6 +41,16 @@ export default function BugsPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/bugs/${id}`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bugs'] }); setDeleteId(null); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.patch(`/bugs/${id}`, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bugs'] }); setEditBug(null); },
+  });
+
   const handleExportExcel = () => {
     const params = new URLSearchParams();
     if (statusFilter) params.set('status', statusFilter);
@@ -40,10 +58,8 @@ export default function BugsPage() {
     if (search) params.set('search', search);
     if (fromDate) params.set('from', fromDate);
     if (toDate) params.set('to', toDate);
-
     const token = localStorage.getItem('token');
     if (token) params.set('token', token);
-
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     window.open(`${API_URL}/reports/export/excel?${params.toString()}`, '_blank');
   };
@@ -127,17 +143,17 @@ export default function BugsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">
-                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created')].map(h => (
-                      <th key={h} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
+                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created'), ''].map((h, i) => (
+                      <th key={i} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(bug => (
-                    <tr key={bug.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                    <tr key={bug.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group">
                       <td className="px-5 py-4 max-w-xs">
-                        <Link href={`/bugs/${bug.id}`} className="group block">
-                          <p className="text-sm font-medium text-slate-200 group-hover:text-indigo-400 transition-colors">{bug.title}</p>
+                        <Link href={`/bugs/${bug.id}`} className="group/link block">
+                          <p className="text-sm font-medium text-slate-200 group-hover/link:text-indigo-400 transition-colors">{bug.title}</p>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                             {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded">{bug.module}</span>}
                             <span className="text-xs text-slate-400 line-clamp-1 flex-1">{bug.description}</span>
@@ -146,9 +162,7 @@ export default function BugsPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-semibold tabular-nums transition-colors ${
-                            justUpvoted === bug.id ? 'text-emerald-400' : 'text-slate-300'
-                          }`}>
+                          <span className={`text-sm font-semibold tabular-nums transition-colors ${justUpvoted === bug.id ? 'text-emerald-400' : 'text-slate-300'}`}>
                             {bug.reportedByClientsCount}
                           </span>
                           <button
@@ -188,6 +202,29 @@ export default function BugsPage() {
                           <Clock className="w-3 h-3" />{formatDate(bug.createdAt)}
                         </div>
                       </td>
+                      {/* Action buttons */}
+                      <td className="px-3 py-4">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {canEdit && (
+                            <button
+                              onClick={() => setEditBug(bug)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                              title={t('edit')}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => setDeleteId(bug.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                              title={t('delete')}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -196,6 +233,133 @@ export default function BugsPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirm Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">{t('confirm_delete')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('delete')}?</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate(deleteId)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors"
+              >
+                {t('delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Bug Modal */}
+      {editBug && (
+        <EditBugModal
+          bug={editBug}
+          onClose={() => setEditBug(null)}
+          onSave={(data) => updateMutation.mutate({ id: editBug.id, data })}
+          isPending={updateMutation.isPending}
+        />
+      )}
     </AppLayout>
+  );
+}
+
+function EditBugModal({ bug, onClose, onSave, isPending }: {
+  bug: Bug;
+  onClose: () => void;
+  onSave: (data: any) => void;
+  isPending: boolean;
+}) {
+  const { t } = useI18n();
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: () => api.get('/products').then(r => r.data),
+  });
+
+  const bugStatuses: BugStatus[] = ['NEW', 'CONFIRMED', 'IN_PROGRESS', 'WAITING', 'FIXED', 'CLOSED', 'REJECTED'];
+  const bugPriorities: BugPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+
+  const [form, setForm] = useState({
+    title: bug.title,
+    productId: bug.productId || '',
+    module: bug.module || '',
+    description: bug.description,
+    priority: bug.priority,
+    status: bug.status,
+  });
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="glass-card p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-sm font-semibold text-white">{t('edit')} — Bug</h3>
+          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">{t('bug_title')} *</label>
+            <input value={form.title} onChange={e => set('title', e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('product')}</label>
+              <select value={form.productId} onChange={e => set('productId', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <option value="">{t('select_product')}</option>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('module')}</label>
+              <input value={form.module} onChange={e => set('module', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('priority')}</label>
+              <select value={form.priority} onChange={e => set('priority', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                {bugPriorities.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('status')}</label>
+              <select value={form.status} onChange={e => set('status', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                {bugStatuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">{t('description')} *</label>
+            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4}
+              className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none" />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">{t('cancel')}</button>
+            <button
+              onClick={() => onSave(form)}
+              disabled={isPending}
+              className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Save className="w-3.5 h-3.5" />{t('save')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

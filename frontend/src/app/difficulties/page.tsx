@@ -11,7 +11,8 @@ import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import {
   Plus, Frown, X, Package, User, Calendar,
-  ChevronRight, CircleDot, CheckCircle2, Eye, Clock
+  ChevronRight, CircleDot, CheckCircle2, Eye, Clock,
+  Edit3, Trash2, Save, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,8 +41,12 @@ export default function DifficultiesPage() {
   const [toDate, setToDate] = useState('');
   const [selected, setSelected] = useState<Difficulty | null>(null);
   const [newStatus, setNewStatus] = useState<DifficultyStatus | ''>('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', productId: '', description: '' });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canDelete = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
 
   const { data: difficulties = [], isLoading } = useQuery<Difficulty[]>({
@@ -62,11 +67,11 @@ export default function DifficultiesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: DifficultyStatus }) =>
-      api.patch(`/difficulties/${id}`, { status }),
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.patch(`/difficulties/${id}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['difficulties'] });
       setSelected(null);
+      setIsEditing(false);
       setNewStatus('');
     },
   });
@@ -76,13 +81,20 @@ export default function DifficultiesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['difficulties'] });
       setSelected(null);
+      setDeleteId(null);
     },
   });
+
+  const openDetail = (d: Difficulty) => {
+    setSelected(d);
+    setIsEditing(false);
+    setNewStatus('');
+    setEditForm({ title: d.title, productId: d.productId || '', description: d.description });
+  };
 
   const statuses: DifficultyStatus[] = ['NEW', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'];
 
   const statsCount = {
-    all: difficulties.length,
     NEW: difficulties.filter(d => d.status === 'NEW').length,
     UNDER_REVIEW: difficulties.filter(d => d.status === 'UNDER_REVIEW').length,
     RESOLVED: difficulties.filter(d => d.status === 'RESOLVED').length,
@@ -139,55 +151,30 @@ export default function DifficultiesPage() {
           <div className="flex gap-2 flex-wrap flex-1">
             <button
               onClick={() => setStatusFilter('')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                !statusFilter ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!statusFilter ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
             >
               {t('all')}
             </button>
             {statuses.map(s => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(statusFilter === s ? '' : s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                  statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+              <button key={s} onClick={() => setStatusFilter(statusFilter === s ? '' : s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
               >
                 {STATUS_ICONS[s]}
                 {s.replace(/_/g, ' ')}
               </button>
             ))}
           </div>
-
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Product filter */}
-            <select
-              value={productFilter}
-              onChange={e => setProductFilter(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
+            <select value={productFilter} onChange={e => setProductFilter(e.target.value)}
+              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">{t('all')} ({t('product')})</option>
-              {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
+              {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-
-            {/* Date range */}
-            <input
-              type="date"
-              value={fromDate}
-              onChange={e => setFromDate(e.target.value)}
-              title={t('date_from')}
-              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}
+              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <span className="text-slate-600 text-xs">–</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={e => setToDate(e.target.value)}
-              title={t('date_to')}
-              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} title={t('date_to')}
+              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
         </div>
 
@@ -202,26 +189,19 @@ export default function DifficultiesPage() {
               <Frown className="w-10 h-10 mb-3 text-slate-600" />
               <p className="font-medium">{t('no_difficulties')}</p>
               <p className="text-xs mt-1 text-slate-600">
-                <Link href="/difficulties/new" className="text-indigo-400 hover:underline">
-                  {t('new_difficulty')}
-                </Link>
+                <Link href="/difficulties/new" className="text-indigo-400 hover:underline">{t('new_difficulty')}</Link>
               </p>
             </div>
           ) : (
             difficulties.map(d => (
-              <button
-                key={d.id}
-                onClick={() => { setSelected(d); setNewStatus(''); }}
-                className={`w-full glass-card p-4 hover:border-slate-600 transition-all duration-200 border-l-4 text-left group ${STATUS_COLORS_MAP[d.status]}`}
-              >
+              <div key={d.id} className={`glass-card p-4 hover:border-slate-600 transition-all duration-200 border-l-4 group ${STATUS_COLORS_MAP[d.status]}`}>
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
+                  <button onClick={() => openDetail(d)} className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <StatusBadge status={d.status} />
                       {d.product && (
                         <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-800/80 px-2 py-0.5 rounded-md">
-                          <Package className="w-3 h-3" />
-                          {d.product.name}
+                          <Package className="w-3 h-3" />{d.product.name}
                         </span>
                       )}
                     </div>
@@ -230,142 +210,230 @@ export default function DifficultiesPage() {
                     <div className="flex items-center gap-4 mt-2">
                       {d.createdBy && (
                         <span className="flex items-center gap-1 text-[11px] text-slate-600">
-                          <User className="w-3 h-3" />
-                          {d.createdBy.fullName}
+                          <User className="w-3 h-3" />{d.createdBy.fullName}
                         </span>
                       )}
                       <span className="flex items-center gap-1 text-[11px] text-slate-600">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(d.createdAt)}
+                        <Calendar className="w-3 h-3" />{formatDate(d.createdAt)}
                       </span>
                     </div>
+                  </button>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canEdit && (
+                      <button
+                        onClick={() => { openDetail(d); setTimeout(() => setIsEditing(true), 0); }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                        title={t('edit')}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => setDeleteId(d.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-slate-600 ml-1" />
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 flex-shrink-0 mt-1 transition-colors" />
                 </div>
-              </button>
+              </div>
             ))
           )}
         </div>
       </div>
 
-      {/* Detail Drawer/Modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelected(null); }}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {/* Delete Confirm Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">{t('confirm_delete')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('delete')}?</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate(deleteId)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors"
+              >
+                {t('delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-          {/* Panel */}
+      {/* Detail / Edit Drawer */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={(e) => { if (e.target === e.currentTarget) { setSelected(null); setIsEditing(false); } }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div className="relative w-full sm:max-w-lg bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
-            {/* Handle bar (mobile) */}
             <div className="flex justify-center pt-3 sm:hidden">
               <div className="w-12 h-1 bg-slate-700 rounded-full" />
             </div>
-
             <div className="p-6">
-              {/* Header */}
+              {/* Modal Header */}
               <div className="flex items-start justify-between gap-3 mb-5">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <StatusBadge status={selected.status} />
-                    {selected.product && (
-                      <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md">
-                        <Package className="w-3 h-3" />
-                        {selected.product.name}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold text-white leading-snug">{selected.title}</h2>
-                </div>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Description */}
-              <div className="bg-slate-800/50 rounded-xl p-4 mb-5">
-                <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{selected.description}</p>
-              </div>
-
-              {/* Meta info */}
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                {selected.createdBy && (
-                  <div className="bg-slate-800/40 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{t('reported_by')}</p>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[9px] font-bold text-white">
-                        {selected.createdBy.fullName.charAt(0)}
+                  {!isEditing && (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <StatusBadge status={selected.status} />
+                        {selected.product && (
+                          <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md">
+                            <Package className="w-3 h-3" />{selected.product.name}
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs text-slate-300 font-medium">{selected.createdBy.fullName}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-600 mt-0.5">{selected.createdBy.role}</p>
-                  </div>
-                )}
-                <div className="bg-slate-800/40 rounded-lg p-3">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{t('created')}</p>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-slate-500" />
-                    <span className="text-xs text-slate-300">{formatDate(selected.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status update — only for allowed roles */}
-              {canUpdateStatus && selected.status !== 'RESOLVED' && selected.status !== 'REJECTED' && (
-                <div className="border-t border-slate-800 pt-4 mb-4">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                    {t('difficulty_status_update')}
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {statuses
-                      .filter(s => s !== selected.status)
-                      .map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setNewStatus(newStatus === s ? '' : s)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                            newStatus === s
-                              ? 'bg-indigo-600 border-indigo-500 text-white'
-                              : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
-                          }`}
-                        >
-                          {STATUS_ICONS[s]}
-                          {s.replace(/_/g, ' ')}
-                        </button>
-                      ))}
-                  </div>
-                  {newStatus && (
-                    <button
-                      onClick={() => updateMutation.mutate({ id: selected.id, status: newStatus as DifficultyStatus })}
-                      disabled={updateMutation.isPending}
-                      className="mt-3 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      {updateMutation.isPending ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <>{t('save')}</>
-                      )}
-                    </button>
+                      <h2 className="text-lg font-bold text-white leading-snug">{selected.title}</h2>
+                    </>
+                  )}
+                  {isEditing && (
+                    <h2 className="text-base font-bold text-white">{t('edit')} — {t('difficulties_title')}</h2>
                   )}
                 </div>
-              )}
+                <div className="flex items-center gap-1">
+                  {canEdit && !isEditing && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-400 transition-colors"
+                      title={t('edit')}
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setSelected(null); setIsEditing(false); }}
+                    className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-              {/* Delete button */}
-              {canDelete && (
-                <button
-                  onClick={() => {
-                    if (confirm(t('delete') + '?')) deleteMutation.mutate(selected.id);
-                  }}
-                  disabled={deleteMutation.isPending}
-                  className="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  {t('delete')}
-                </button>
+              {/* Edit Form */}
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">{t('difficulty_title_label')} *</label>
+                    <input
+                      value={editForm.title}
+                      onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                      className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">{t('product')}</label>
+                    <select
+                      value={editForm.productId}
+                      onChange={e => setEditForm(f => ({ ...f, productId: e.target.value }))}
+                      className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="">{t('select_product')}</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">{t('description')} *</label>
+                    <textarea
+                      value={editForm.description}
+                      onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                      rows={5}
+                      className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-1">
+                    <button onClick={() => setIsEditing(false)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                      {t('cancel')}
+                    </button>
+                    <button
+                      onClick={() => updateMutation.mutate({ id: selected.id, data: { title: editForm.title, productId: editForm.productId || null, description: editForm.description } })}
+                      disabled={updateMutation.isPending}
+                      className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Save className="w-3.5 h-3.5" />{t('save')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Description */}
+                  <div className="bg-slate-800/50 rounded-xl p-4 mb-5">
+                    <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{selected.description}</p>
+                  </div>
+
+                  {/* Meta info */}
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    {selected.createdBy && (
+                      <div className="bg-slate-800/40 rounded-lg p-3">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{t('reported_by')}</p>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[9px] font-bold text-white">
+                            {selected.createdBy.fullName.charAt(0)}
+                          </div>
+                          <span className="text-xs text-slate-300 font-medium">{selected.createdBy.fullName}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-600 mt-0.5">{selected.createdBy.role}</p>
+                      </div>
+                    )}
+                    <div className="bg-slate-800/40 rounded-lg p-3">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{t('created')}</p>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 text-slate-500" />
+                        <span className="text-xs text-slate-300">{formatDate(selected.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status update */}
+                  {canUpdateStatus && selected.status !== 'RESOLVED' && selected.status !== 'REJECTED' && (
+                    <div className="border-t border-slate-800 pt-4 mb-4">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t('difficulty_status_update')}</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {statuses.filter(s => s !== selected.status).map(s => (
+                          <button key={s} onClick={() => setNewStatus(newStatus === s ? '' : s)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${newStatus === s ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                          >
+                            {STATUS_ICONS[s]}{s.replace(/_/g, ' ')}
+                          </button>
+                        ))}
+                      </div>
+                      {newStatus && (
+                        <button
+                          onClick={() => updateMutation.mutate({ id: selected.id, data: { status: newStatus } })}
+                          disabled={updateMutation.isPending}
+                          className="mt-3 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          {updateMutation.isPending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : t('save')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Delete button */}
+                  {canDelete && (
+                    <button
+                      onClick={() => setDeleteId(selected.id)}
+                      className="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      {t('delete')}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
