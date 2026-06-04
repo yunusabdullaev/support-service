@@ -1,15 +1,13 @@
 'use client';
 
-import React from 'react';
-
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Bug, BugStatus, User } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { formatDate, formatDateTime } from '@/lib/utils';
-import { ArrowLeft, MessageSquare, Paperclip, Send, Edit2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Paperclip, Send, Edit2, CheckCircle2, ImagePlus, X, ZoomIn } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 
@@ -20,6 +18,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
   const [comment, setComment] = useState('');
   const [editStatus, setEditStatus] = useState(false);
   const [newStatus, setNewStatus] = useState<BugStatus>('NEW');
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
 
   const { data: bug, isLoading } = useQuery<Bug>({
     queryKey: ['bug', id],
@@ -42,6 +43,25 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
       setEditStatus(false);
     },
   });
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  const handleUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setIsUploading(true);
+    try {
+      await Promise.all(files.map(file => {
+        const fd = new FormData();
+        fd.append('file', file);
+        return api.post(`/bugs/${id}/attachments`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      }));
+      qc.invalidateQueries({ queryKey: ['bug', id] });
+    } finally {
+      setIsUploading(false);
+      if (uploadRef.current) uploadRef.current.value = '';
+    }
+  };
 
   const bugStatuses: BugStatus[] = ['NEW', 'CONFIRMED', 'IN_PROGRESS', 'WAITING', 'FIXED', 'CLOSED', 'REJECTED'];
 
@@ -195,29 +215,81 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
               </div>
             </div>
 
-            {/* Attachments */}
-            {bug.attachments && bug.attachments.length > 0 && (
-              <div className="glass-card p-5">
-                <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-                  <Paperclip className="w-4 h-4" /> Attachments
+            {/* Attachments / Images */}
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                  <ImagePlus className="w-4 h-4" />
+                  Rasmlar {bug.attachments && bug.attachments.length > 0 && `(${bug.attachments.length})`}
                 </h3>
-                <div className="space-y-2">
-                  {bug.attachments.map(a => {
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-                    return (
-                      <a key={a.id} href={`${API_URL}${a.fileUrl}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors text-xs text-indigo-400">
-                        <Paperclip className="w-3 h-3" />
-                        {a.fileName}
-                      </a>
-                    );
-                  })}
-                </div>
+                <>
+                  <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
+                  <button
+                    onClick={() => uploadRef.current?.click()}
+                    disabled={isUploading}
+                    className="text-xs px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 text-indigo-400 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {isUploading
+                      ? <><div className="w-3 h-3 border border-indigo-400/50 border-t-indigo-400 rounded-full animate-spin" />Yuklanmoqda...</>
+                      : <><ImagePlus className="w-3 h-3" />Rasm qo'sh</>}
+                  </button>
+                </>
               </div>
-            )}
+
+              {(!bug.attachments || bug.attachments.length === 0) ? (
+                <button
+                  onClick={() => uploadRef.current?.click()}
+                  className="w-full py-6 border-2 border-dashed border-slate-700 rounded-lg text-slate-600 hover:border-indigo-500/50 hover:text-slate-500 transition-all flex flex-col items-center gap-2 text-xs"
+                >
+                  <ImagePlus className="w-6 h-6" />
+                  Rasm qo'shish uchun bosing
+                </button>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {bug.attachments.map(a => (
+                    <button
+                      key={a.id}
+                      onClick={() => setLightboxSrc(`${API_URL}${a.fileUrl}`)}
+                      className="relative group aspect-video rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors"
+                    >
+                      <img
+                        src={`${API_URL}${a.fileUrl}`}
+                        alt={a.fileName}
+                        className="w-full h-full object-cover"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            onClick={() => setLightboxSrc(null)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt=""
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
     </AppLayout>
   );
 }
