@@ -54,6 +54,7 @@ export class ImprovementsService {
       include: {
         product: { select: { id: true, name: true } },
         createdBy: { select: { id: true, fullName: true } },
+        upvotes: { orderBy: { createdAt: 'desc' } },
       },
     });
     if (!item) throw new NotFoundException('Improvement not found');
@@ -84,13 +85,18 @@ export class ImprovementsService {
     return this.prisma.improvementRequest.delete({ where: { id } });
   }
 
-  async upvote(id: string) {
+  async upvote(id: string, phone: string) {
     await this.findOne(id);
-    return this.prisma.improvementRequest.update({
-      where: { id },
-      data: { requestedByClientsCount: { increment: 1 } },
-      select: { id: true, requestedByClientsCount: true },
-    });
+    const [upvote] = await this.prisma.$transaction([
+      this.prisma.improvementUpvote.create({
+        data: { improvementId: id, phone },
+      }),
+      this.prisma.improvementRequest.update({
+        where: { id },
+        data: { requestedByClientsCount: { increment: 1 } },
+      }),
+    ]);
+    return upvote;
   }
 
   count(status?: ImprovementStatus) {

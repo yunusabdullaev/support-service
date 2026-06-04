@@ -84,6 +84,13 @@ export interface DialogReview {
   createdAt: string;
 }
 
+export interface ImprovementUpvote {
+  id: string;
+  improvementId: string;
+  phone: string;
+  createdAt: string;
+}
+
 export interface ImprovementRequest {
   id: string;
   title: string;
@@ -95,6 +102,7 @@ export interface ImprovementRequest {
   businessValue?: string;
   status: ImprovementStatus;
   createdBy?: { id: string; fullName: string };
+  upvotes?: ImprovementUpvote[];
   createdAt: string;
 }
 

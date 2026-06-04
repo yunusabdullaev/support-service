@@ -10,7 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import {
   Plus, Lightbulb, TrendingUp, UserPlus, Check,
-  Download, Edit3, Trash2, X, Save, AlertCircle, Phone, User
+  Download, Edit3, Trash2, X, Save, AlertCircle, Phone, User, Clock, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -25,6 +25,11 @@ export default function ImprovementsPage() {
   const [toDate, setToDate] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<ImprovementRequest | null>(null);
+  const [detailItem, setDetailItem] = useState<ImprovementRequest | null>(null);
+  const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
+  const [upvotePhone, setUpvotePhone] = useState('');
+
+  const canViewDetail = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '');
 
   const canEditItem = (createdById?: string) =>
     ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
@@ -55,10 +60,13 @@ export default function ImprovementsPage() {
   });
 
   const upvoteMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/improvements/${id}/upvote`),
-    onSuccess: (_, id) => {
+    mutationFn: ({ id, phone }: { id: string; phone: string }) =>
+      api.post(`/improvements/${id}/upvote`, { phone }),
+    onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['improvements'] });
       setJustUpvoted(id);
+      setUpvoteTarget(null);
+      setUpvotePhone('');
       setTimeout(() => setJustUpvoted(null), 1500);
     },
   });
@@ -142,7 +150,7 @@ export default function ImprovementsPage() {
           ) : (
             improvements.map(imp => {
               const isUpvoted = justUpvoted === imp.id;
-              const isUpvoting = upvoteMutation.isPending && upvoteMutation.variables === imp.id;
+              const isUpvoting = upvoteMutation.isPending && upvoteMutation.variables?.id === imp.id;
 
               return (
                 <div key={imp.id} className="glass-card p-5 hover:border-slate-600 transition-all duration-200 group">
@@ -150,7 +158,7 @@ export default function ImprovementsPage() {
                     {/* +1 Client button */}
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
                       <button
-                        onClick={() => upvoteMutation.mutate(imp.id)}
+                      onClick={() => setUpvoteTarget(imp.id)}
                         disabled={isUpvoting}
                         title={t('add_client_title')}
                         className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 font-bold transition-all duration-200 ${
@@ -176,8 +184,11 @@ export default function ImprovementsPage() {
                       <span className="text-[10px] text-slate-600">{t('clients')}</span>
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
+                    {/* Clickable content area for detail view */}
+                    <div
+                      className={`flex-1 min-w-0 ${canViewDetail ? 'cursor-pointer' : ''}`}
+                      onClick={() => canViewDetail && setDetailItem(imp)}
+                    >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <StatusBadge status={imp.status} />
                         {imp.product && (
@@ -213,6 +224,15 @@ export default function ImprovementsPage() {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {canViewDetail && (
+                        <button
+                          onClick={() => setDetailItem(imp)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                          title="Batafsil ko'rish"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       {canEditItem(imp.createdBy?.id) && (
                         <button
                           onClick={() => setEditItem(imp)}
@@ -276,6 +296,60 @@ export default function ImprovementsPage() {
           onClose={() => setEditItem(null)}
           onSave={(data) => updateMutation.mutate({ id: editItem.id, data })}
           isPending={updateMutation.isPending}
+        />
+      )}
+
+      {/* Upvote Phone Modal */}
+      {upvoteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Mijoz telefon raqami</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Qaysi mijoz bu taklifni yubordi?</p>
+              </div>
+              <button onClick={() => { setUpvoteTarget(null); setUpvotePhone(''); }} className="ml-auto p-1 text-slate-500 hover:text-slate-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="tel"
+              value={upvotePhone}
+              onChange={e => setUpvotePhone(e.target.value)}
+              placeholder="+998 90 000 00 00"
+              autoFocus
+              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm mb-4"
+              onKeyDown={e => e.key === 'Enter' && upvotePhone && upvoteMutation.mutate({ id: upvoteTarget, phone: upvotePhone })}
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setUpvoteTarget(null); setUpvotePhone(''); }} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => upvoteMutation.mutate({ id: upvoteTarget, phone: upvotePhone })}
+                disabled={!upvotePhone || upvoteMutation.isPending}
+                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {upvoteMutation.isPending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                +1 Qo'shish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Drawer */}
+      {detailItem && canViewDetail && (
+        <DetailDrawer
+          item={detailItem}
+          onClose={() => setDetailItem(null)}
+          onEdit={() => { setEditItem(detailItem); setDetailItem(null); }}
+          onDelete={() => { setDeleteId(detailItem.id); setDetailItem(null); }}
+          canEdit={canEditItem(detailItem.createdBy?.id)}
+          canDelete={canDeleteItem(detailItem.createdBy?.id)}
         />
       )}
     </AppLayout>
@@ -359,6 +433,124 @@ function EditImprovementModal({ item, onClose, onSave, isPending }: {
               <Save className="w-3.5 h-3.5" />{t('save')}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailDrawer({ item, onClose, onEdit, onDelete, canEdit, canDelete }: {
+  item: ImprovementRequest;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  canEdit: boolean;
+  canDelete: boolean;
+}) {
+  const { t } = useI18n();
+  const { data: detail } = useQuery<ImprovementRequest>({
+    queryKey: ['improvement-detail', item.id],
+    queryFn: () => api.get(`/improvements/${item.id}`).then(r => r.data),
+  });
+
+  const upvotes = detail?.upvotes || [];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-lg bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3 mb-5">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <StatusBadge status={item.status} />
+                {item.product && (
+                  <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md">{item.product.name}</span>
+                )}
+              </div>
+              <h2 className="text-base font-bold text-white leading-snug">{item.title}</h2>
+            </div>
+            <div className="flex items-center gap-1">
+              {canEdit && <button onClick={onEdit} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-400 transition-colors"><Edit3 className="w-4 h-4" /></button>}
+              <button onClick={onClose} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="bg-slate-800/50 rounded-xl p-4 mb-5">
+            <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{item.description}</p>
+          </div>
+
+          {/* Meta */}
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {item.createdBy && (
+              <div className="bg-slate-800/40 rounded-lg p-3">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Hodim</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[9px] font-bold text-white">
+                    {item.createdBy.fullName.charAt(0)}
+                  </div>
+                  <span className="text-xs text-slate-300 font-medium">{item.createdBy.fullName}</span>
+                </div>
+              </div>
+            )}
+            <div className="bg-slate-800/40 rounded-lg p-3">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{t('created')}</p>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3 text-slate-500" />
+                <span className="text-xs text-slate-300">{formatDate(item.createdAt)}</span>
+              </div>
+            </div>
+            {item.clientPhone && (
+              <div className="bg-slate-800/40 rounded-lg p-3">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Mijoz tel</p>
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-3 h-3 text-slate-500" />
+                  <span className="text-xs text-slate-300">{item.clientPhone}</span>
+                </div>
+              </div>
+            )}
+            {item.businessValue && (
+              <div className="bg-slate-800/40 rounded-lg p-3">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Business value</p>
+                <p className="text-xs text-slate-300">{item.businessValue}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Upvote history */}
+          <div className="border-t border-slate-800 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Mijozlar tarixi
+              </p>
+              <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                {upvotes.length} ta
+              </span>
+            </div>
+            {upvotes.length === 0 ? (
+              <p className="text-xs text-slate-600 text-center py-4">Hali hech kim +1 bosmagan</p>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {upvotes.map((uv, i) => (
+                  <div key={uv.id} className="flex items-center gap-3 bg-slate-800/40 rounded-lg px-3 py-2">
+                    <span className="text-[10px] text-slate-600 w-5">{i + 1}</span>
+                    <Phone className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                    <span className="text-xs text-slate-300 font-medium flex-1">{uv.phone}</span>
+                    <span className="text-[10px] text-slate-600">{formatDate(uv.createdAt)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Delete */}
+          {canDelete && (
+            <button onClick={onDelete} className="mt-4 w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors">
+              {t('delete')}
+            </button>
+          )}
         </div>
       </div>
     </div>

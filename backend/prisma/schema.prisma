@@ -237,8 +237,20 @@ model ImprovementRequest {
 
   product   Product @relation(fields: [productId], references: [id])
   createdBy User    @relation("ImprovementCreatedBy", fields: [createdById], references: [id])
+  upvotes   ImprovementUpvote[]
 
   @@map("improvement_requests")
+}
+
+model ImprovementUpvote {
+  id            String   @id @default(cuid())
+  improvementId String
+  phone         String
+  createdAt     DateTime @default(now())
+
+  improvement ImprovementRequest @relation(fields: [improvementId], references: [id], onDelete: Cascade)
+
+  @@map("improvement_upvotes")
 }
 
 model ServiceMonitor {
