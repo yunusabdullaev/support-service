@@ -21,6 +21,7 @@ export default function NewClientPage() {
     position: '',
     location: '',
     branchCount: 1,
+    employeeCount: 0,
     note: '',
   });
   const [error, setError] = useState('');
@@ -113,17 +114,19 @@ export default function NewClientPage() {
             </div>
           </div>
 
-          {/* Location & Branches */}
+          {/* Location */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client_location')}</label>
+            <input
+              value={form.location}
+              onChange={e => set('location', e.target.value)}
+              placeholder={t('client_location_placeholder')}
+              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+          </div>
+
+          {/* Branches & Employees */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client_location')}</label>
-              <input
-                value={form.location}
-                onChange={e => set('location', e.target.value)}
-                placeholder={t('client_location_placeholder')}
-                className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client_branches')}</label>
               <input
@@ -131,6 +134,16 @@ export default function NewClientPage() {
                 min={1}
                 value={form.branchCount}
                 onChange={e => set('branchCount', parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client_employees')}</label>
+              <input
+                type="number"
+                min={0}
+                value={form.employeeCount}
+                onChange={e => set('employeeCount', parseInt(e.target.value) || 0)}
                 className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               />
             </div>

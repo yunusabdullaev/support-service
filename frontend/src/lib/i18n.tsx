@@ -36,9 +36,11 @@ const translations = {
     client_location: 'Joylashuvi',
     client_location_placeholder: 'Masalan: Toshkent, Samarqand',
     client_branches: 'Filiallar soni',
+    client_employees: 'Ishchilar soni',
     client_note_placeholder: 'Qo\'shimcha izohlar...',
     confirm_delete_client: 'Bu mijozni o\'chirishni tasdiqlaysizmi?',
     branch: 'ta filial',
+    employees: 'ta ishchi',
     nav_settings: 'Sozlamalar',
 
     // Common
@@ -344,9 +346,11 @@ const translations = {
     client_location: 'Местонахождение',
     client_location_placeholder: 'Например: Ташкент, Самарканд',
     client_branches: 'Кол-во филиалов',
+    client_employees: 'Кол-во сотрудников',
     client_note_placeholder: 'Дополнительные заметки...',
     confirm_delete_client: 'Вы действительно хотите удалить этого клиента?',
     branch: 'филиал',
+    employees: 'сотрудников',
     nav_settings: 'Настройки',
 
     loading: 'Загрузка...',
@@ -636,9 +640,11 @@ const translations = {
     client_location: 'Location',
     client_location_placeholder: 'e.g. Tashkent, Samarkand',
     client_branches: 'Number of Branches',
+    client_employees: 'Staff Count',
     client_note_placeholder: 'Additional notes...',
     confirm_delete_client: 'Are you sure you want to delete this client?',
     branch: 'branch(es)',
+    employees: 'staff',
     nav_settings: 'Settings',
 
     loading: 'Loading...',

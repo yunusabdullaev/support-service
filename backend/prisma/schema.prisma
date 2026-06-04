@@ -325,6 +325,7 @@ model Client {
   position    String?
   location    String?
   branchCount Int      @default(1)
+  employeeCount Int    @default(0)
   note        String?  @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())

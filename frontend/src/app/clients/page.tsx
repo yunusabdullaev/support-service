@@ -21,6 +21,7 @@ interface Client {
   position?: string;
   location?: string;
   branchCount: number;
+  employeeCount: number;
   note?: string;
   isActive: boolean;
   createdAt: string;
@@ -191,6 +192,10 @@ export default function ClientsPage() {
                     <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                     <span>{client.branchCount} {t('branch')}</span>
                   </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <UserCheck className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                    <span>{client.employeeCount} {t('employees')}</span>
+                  </div>
                 </div>
 
                 {client.note && (
@@ -261,6 +266,7 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
     position: client.position || '',
     location: client.location || '',
     branchCount: client.branchCount,
+    employeeCount: client.employeeCount,
     note: client.note || '',
   });
   const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }));
@@ -285,16 +291,20 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
               <input value={form.phone} onChange={e => set('phone', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">{t('client_branches')}</label>
-              <input type="number" min={1} value={form.branchCount} onChange={e => set('branchCount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-            </div>
-            <div>
               <label className="block text-xs text-slate-400 mb-1">{t('client_direction')}</label>
               <input value={form.direction} onChange={e => set('direction', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
             <div>
               <label className="block text-xs text-slate-400 mb-1">{t('client_position')}</label>
               <input value={form.position} onChange={e => set('position', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_branches')}</label>
+              <input type="number" min={1} value={form.branchCount} onChange={e => set('branchCount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_employees')}</label>
+              <input type="number" min={0} value={form.employeeCount} onChange={e => set('employeeCount', parseInt(e.target.value) || 0)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
             <div className="col-span-2">
               <label className="block text-xs text-slate-400 mb-1">{t('client_location')}</label>

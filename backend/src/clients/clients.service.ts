@@ -9,6 +9,7 @@ export class CreateClientDto {
   position?: string;
   location?: string;
   branchCount?: number;
+  employeeCount?: number;
   note?: string;
 }
 
@@ -19,6 +20,7 @@ export class UpdateClientDto {
   position?: string;
   location?: string;
   branchCount?: number;
+  employeeCount?: number;
   note?: string;
   isActive?: boolean;
 }
@@ -86,6 +88,7 @@ export class ClientsService {
       { header: 'Position', key: 'position', width: 20 },
       { header: 'Location', key: 'location', width: 20 },
       { header: 'Branches', key: 'branchCount', width: 12 },
+      { header: 'Staff Count', key: 'employeeCount', width: 12 },
       { header: 'Active', key: 'isActive', width: 12 },
       { header: 'Notes', key: 'note', width: 35 },
       { header: 'Created At', key: 'createdAt', width: 20 },
@@ -108,6 +111,7 @@ export class ClientsService {
         position: c.position || '—',
         location: c.location || '—',
         branchCount: c.branchCount,
+        employeeCount: c.employeeCount,
         isActive: c.isActive ? 'Yes' : 'No',
         note: c.note || '—',
         createdAt: new Date(c.createdAt).toLocaleDateString('ru-RU'),
