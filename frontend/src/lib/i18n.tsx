@@ -218,7 +218,7 @@ const translations = {
     // Reports
     reports_title: 'Hisobotlar',
     reports_subtitle: 'Tahlil va eksport vositalari',
-    export_excel: 'Excel (Xatolar)',
+    export_excel: 'Excel',
     export_pdf: 'PDF (QA)',
     total_bugs_report: 'Jami xatolar',
     qa_reviews: 'QA tahlillari',
@@ -510,7 +510,7 @@ const translations = {
 
     reports_title: 'Отчёты',
     reports_subtitle: 'Аналитика и инструменты экспорта',
-    export_excel: 'Excel (Баги)',
+    export_excel: 'Excel',
     total_bugs_report: 'Всего ошибок',
     qa_reviews: 'QA разборы',
     avg_qa: 'Средний QA',
@@ -796,7 +796,7 @@ const translations = {
 
     reports_title: 'Reports',
     reports_subtitle: 'Analytics and export tools',
-    export_excel: 'Excel (Bugs)',
+    export_excel: 'Excel',
     total_bugs_report: 'Total bugs',
     qa_reviews: 'QA Reviews',
     avg_qa: 'Avg QA',

@@ -80,7 +80,7 @@ export default function ReportsPage() {
           <div className="flex gap-2">
             <button onClick={handleExportExcel}
               className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors">
-              <Download className="w-4 h-4" /> Excel (Bugs)
+              <Download className="w-4 h-4" /> Excel
             </button>
             <button onClick={handleExportPdf}
               className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors">
