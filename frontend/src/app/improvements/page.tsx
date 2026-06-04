@@ -34,10 +34,10 @@ export default function ImprovementsPage() {
   const canViewDetail = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '');
 
   const canEditItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const canDeleteItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const handleExportExcel = () => {
     const params = new URLSearchParams();

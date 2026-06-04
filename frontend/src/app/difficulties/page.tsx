@@ -50,9 +50,10 @@ export default function DifficultiesPage() {
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canEditItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
+
   const canDeleteItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const { data: difficulties = [], isLoading } = useQuery<Difficulty[]>({
     queryKey: ['difficulties', statusFilter, productFilter, fromDate, toDate],

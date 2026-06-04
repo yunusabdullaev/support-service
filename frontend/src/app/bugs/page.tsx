@@ -32,10 +32,10 @@ export default function BugsPage() {
   const qc = useQueryClient();
 
   const canEditItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const canDeleteItem = (createdById?: string) =>
-    ['ADMIN', 'TEAM_LEADER'].includes(user?.role || '') || user?.id === createdById;
+    user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const upvoteMutation = useMutation({
     mutationFn: (id: string) => api.post(`/bugs/${id}/upvote`),

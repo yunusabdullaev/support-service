@@ -69,7 +69,7 @@ export class ImprovementsService {
 
   async update(id: string, dto: UpdateImprovementDto, userId: string, userRole: string) {
     const item = await this.findOne(id);
-    const isPrivileged = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(userRole);
+    const isPrivileged = ['TEAM_LEADER'].includes(userRole);
     if (!isPrivileged && item.createdById !== userId) {
       throw new ForbiddenException('You can only edit your own improvements');
     }
@@ -78,7 +78,7 @@ export class ImprovementsService {
 
   async remove(id: string, userId: string, userRole: string) {
     const item = await this.findOne(id);
-    const isPrivileged = ['ADMIN', 'TEAM_LEADER'].includes(userRole);
+    const isPrivileged = ['TEAM_LEADER'].includes(userRole);
     if (!isPrivileged && item.createdById !== userId) {
       throw new ForbiddenException('You can only delete your own improvements');
     }
