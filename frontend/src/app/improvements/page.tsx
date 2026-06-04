@@ -10,7 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import {
   Plus, Lightbulb, TrendingUp, UserPlus, Check,
-  Download, Edit3, Trash2, X, Save, AlertCircle, Phone
+  Download, Edit3, Trash2, X, Save, AlertCircle, Phone, User
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -200,7 +200,15 @@ export default function ImprovementsPage() {
                           {imp.clientPhone}
                         </p>
                       )}
-                      <p className="text-xs text-slate-600 mt-2">{formatDate(imp.createdAt)}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        {imp.createdBy && (
+                          <span className="flex items-center gap-1 text-[11px] text-slate-600">
+                            <User className="w-3 h-3" />
+                            {imp.createdBy.fullName}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-600">{formatDate(imp.createdAt)}</span>
+                      </div>
                     </div>
 
                     {/* Action buttons */}
