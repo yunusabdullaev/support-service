@@ -5,7 +5,6 @@ import {
   Patch,
   Body,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -25,6 +24,12 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   getMe(@CurrentUser() user: any) {
     return this.authService.getMe(user.id);
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard('jwt'))
+  updateProfile(@CurrentUser() user: any, @Body() body: { phone: string }) {
+    return this.authService.updateProfile(user.id, body.phone);
   }
 
   @Patch('change-password')

@@ -13,6 +13,8 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
+  phone?: string;
+  telegramChatId?: string;
   role: Role;
   isActive: boolean;
   createdAt: string;

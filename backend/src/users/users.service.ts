@@ -17,6 +17,8 @@ export class UsersService {
         id: true,
         fullName: true,
         email: true,
+        phone: true,
+        telegramChatId: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -32,6 +34,8 @@ export class UsersService {
         id: true,
         fullName: true,
         email: true,
+        phone: true,
+        telegramChatId: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -91,5 +95,18 @@ export class UsersService {
   async remove(id: string) {
     await this.findOne(id);
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  async assignPhone(id: string, phone: string, telegramChatId?: string) {
+    await this.findOne(id);
+    const normalized = phone ? phone.replace(/\D/g, '') : undefined;
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(normalized !== undefined && { phone: normalized || null }),
+        ...(telegramChatId !== undefined && { telegramChatId: telegramChatId || null }),
+      },
+      select: { id: true, fullName: true, email: true, phone: true, telegramChatId: true },
+    });
   }
 }

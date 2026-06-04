@@ -15,17 +15,36 @@ export class TelegramService {
   async sendMessage(text: string): Promise<boolean> {
     const settings = await this.getSettings();
     const token = settings?.botToken || process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = settings?.chatId || process.env.TELEGRAM_CHAT_ID;
+    const groupChatId = settings?.chatId || process.env.TELEGRAM_CHAT_ID;
 
     if (!token) {
       this.logger.warn('Telegram not configured (no token), skipping notification');
       return false;
     }
-    if (!chatId) {
-      this.logger.warn('Telegram chat ID not set, skipping notification');
+
+    // Get all users with telegramChatId set
+    const recipients = await this.prisma.user.findMany({
+      where: { telegramChatId: { not: null }, isActive: true },
+      select: { telegramChatId: true },
+    });
+
+    const targets: string[] = [];
+    if (groupChatId) targets.push(groupChatId);
+    recipients.forEach(r => {
+      if (r.telegramChatId && !targets.includes(r.telegramChatId)) {
+        targets.push(r.telegramChatId);
+      }
+    });
+
+    if (targets.length === 0) {
+      this.logger.warn('No Telegram recipients configured');
       return false;
     }
-    return this.sendTelegramMessage(token, chatId, text);
+
+    const results = await Promise.all(
+      targets.map(chatId => this.sendTelegramMessage(token, chatId, text))
+    );
+    return results.some(r => r);
   }
 
   private async sendTelegramMessage(

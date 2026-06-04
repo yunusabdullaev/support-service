@@ -32,6 +32,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        phone: user.phone,
       },
     };
   }
@@ -44,9 +45,21 @@ export class AuthService {
         email: true,
         fullName: true,
         role: true,
+        phone: true,
+        telegramChatId: true,
         isActive: true,
         createdAt: true,
       },
+    });
+  }
+
+  async updateProfile(userId: string, phone: string) {
+    // Normalize phone number
+    const normalized = phone.replace(/\D/g, '');
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { phone: normalized },
+      select: { id: true, fullName: true, email: true, role: true, phone: true },
     });
   }
 

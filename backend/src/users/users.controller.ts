@@ -48,4 +48,13 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  @Patch(':id/phone')
+  @Roles('ADMIN', 'TEAM_LEADER')
+  assignPhone(
+    @Param('id') id: string,
+    @Body() body: { phone: string; telegramChatId?: string },
+  ) {
+    return this.usersService.assignPhone(id, body.phone, body.telegramChatId);
+  }
 }
