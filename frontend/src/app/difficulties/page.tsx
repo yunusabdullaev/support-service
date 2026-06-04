@@ -12,7 +12,7 @@ import { useAuth } from '@/lib/auth';
 import {
   Plus, Frown, X, Package, User, Calendar,
   ChevronRight, CircleDot, CheckCircle2, Eye, Clock,
-  Edit3, Trash2, Save, AlertCircle
+  Edit3, Trash2, Save, AlertCircle, Check
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -44,6 +44,7 @@ export default function DifficultiesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', productId: '', description: '' });
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canEditItem = (createdById?: string) =>
@@ -66,6 +67,15 @@ export default function DifficultiesPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: () => api.get('/products').then(r => r.data),
+  });
+
+  const upvoteMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/difficulties/${id}/upvote`),
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ['difficulties'] });
+      setJustUpvoted(id);
+      setTimeout(() => setJustUpvoted(null), 1500);
+    },
   });
 
   const updateMutation = useMutation({
@@ -198,6 +208,29 @@ export default function DifficultiesPage() {
             difficulties.map(d => (
               <div key={d.id} className={`glass-card p-4 hover:border-slate-600 transition-all duration-200 border-l-4 group ${STATUS_COLORS_MAP[d.status]}`}>
                 <div className="flex items-start justify-between gap-3">
+                  {/* +1 upvote button */}
+                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                    <button
+                      onClick={() => upvoteMutation.mutate(d.id)}
+                      disabled={upvoteMutation.isPending && upvoteMutation.variables === d.id}
+                      className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 font-bold transition-all duration-200 ${
+                        justUpvoted === d.id
+                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
+                          : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-amber-500/20 hover:border-amber-500 hover:text-amber-400 hover:scale-105'
+                      }`}
+                    >
+                      {justUpvoted === d.id ? (
+                        <Check className="w-4 h-4" />
+                      ) : upvoteMutation.isPending && upvoteMutation.variables === d.id ? (
+                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <><Frown className="w-3.5 h-3.5" /><span className="text-[9px] font-extrabold">+1</span></>
+                      )}
+                    </button>
+                    <span className={`text-sm font-bold tabular-nums transition-colors ${
+                      justUpvoted === d.id ? 'text-emerald-400' : 'text-slate-400'
+                    }`}>{d.reportedByCount}</span>
+                  </div>
                   <button onClick={() => openDetail(d)} className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <StatusBadge status={d.status} />

@@ -345,14 +345,15 @@ model Client {
 }
 
 model Difficulty {
-  id          String           @id @default(cuid())
-  title       String
-  productId   String?
-  description String           @db.Text
-  status      DifficultyStatus @default(NEW)
-  createdById String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  title            String
+  productId        String?
+  description      String           @db.Text
+  status           DifficultyStatus @default(NEW)
+  reportedByCount  Int              @default(1)
+  createdById      String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   product   Product? @relation(fields: [productId], references: [id])
   createdBy User     @relation("DifficultyCreatedBy", fields: [createdById], references: [id])

@@ -54,4 +54,9 @@ export class DifficultiesController {
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.service.remove(id, user.id, user.role);
   }
+
+  @Post(':id/upvote')
+  upvote(@Param('id') id: string) {
+    return this.service.upvote(id);
+  }
 }

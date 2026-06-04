@@ -93,6 +93,15 @@ export class DifficultiesService {
     return this.prisma.difficulty.delete({ where: { id } });
   }
 
+  async upvote(id: string) {
+    await this.findOne(id);
+    return this.prisma.difficulty.update({
+      where: { id },
+      data: { reportedByCount: { increment: 1 } },
+      select: { id: true, reportedByCount: true },
+    });
+  }
+
   count(status?: DifficultyStatus) {
     return this.prisma.difficulty.count({
       where: status ? { status } : undefined,

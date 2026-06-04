@@ -162,6 +162,8 @@ export interface Difficulty {
   productId?: string;
   description: string;
   status: DifficultyStatus;
+  reportedByCount: number;
+  createdById: string;
   createdBy?: { id: string; fullName: string; role: string };
   createdAt: string;
   updatedAt: string;
