@@ -326,6 +326,22 @@ const translations = {
     status_draft: 'Qoralama',
     status_published: 'Nashr etilgan',
     status_archived: 'Arxivlangan',
+
+    // Difficulties module
+    nav_difficulties: 'Qiyinchiliklar',
+    difficulties_title: 'Qiyinchiliklar',
+    difficulties_subtitle: 'Ish jarayonidagi qiyinchiliklarni yozib qoldiring',
+    difficulties_count: 'ta qiyinchilik',
+    new_difficulty: 'Yangi qiyinchilik',
+    new_difficulty_title: 'Yangi qiyinchilik',
+    new_difficulty_subtitle: 'Muammoyingizni batafsil yozing — buni biz tezroq hal qilishga harakat qilamiz',
+    no_difficulties: 'Qiyinchiliklar topilmadi',
+    difficulty_title_label: 'Qiyinchilik sarlavhasi',
+    difficulty_title_placeholder: 'Qiyinchilikning qisqacha tavsifi',
+    difficulty_description_placeholder: 'Muammoni batafsil yozing...',
+    reported_by: 'Bildirgan',
+    submit_difficulty: 'Yuborish',
+    difficulty_status_update: 'Holatni yangilash',
   },
 
   ru: {
@@ -632,6 +648,22 @@ const translations = {
     status_draft: 'Черновик',
     status_published: 'Опубликован',
     status_archived: 'Архивирован',
+
+    // Difficulties module
+    nav_difficulties: 'Сложности',
+    difficulties_title: 'Сложности',
+    difficulties_subtitle: 'Записывайте сложности, возникающие в работе',
+    difficulties_count: 'сложностей',
+    new_difficulty: 'Новая сложность',
+    new_difficulty_title: 'Новая сложность',
+    new_difficulty_subtitle: 'Опишите вашу проблему подробно — мы постараемся решить её как можно скорее',
+    no_difficulties: 'Сложности не найдены',
+    difficulty_title_label: 'Заголовок сложности',
+    difficulty_title_placeholder: 'Краткое описание сложности',
+    difficulty_description_placeholder: 'Опишите проблему подробно...',
+    reported_by: 'Сообщил',
+    submit_difficulty: 'Отправить',
+    difficulty_status_update: 'Обновить статус',
   },
 
   en: {
@@ -938,6 +970,22 @@ const translations = {
     status_draft: 'Draft',
     status_published: 'Published',
     status_archived: 'Archived',
+
+    // Difficulties module
+    nav_difficulties: 'Difficulties',
+    difficulties_title: 'Difficulties',
+    difficulties_subtitle: 'Report and track the difficulties you face in daily work',
+    difficulties_count: 'difficulties',
+    new_difficulty: 'New Difficulty',
+    new_difficulty_title: 'New Difficulty',
+    new_difficulty_subtitle: 'Describe your problem in detail — we will try to resolve it as quickly as possible',
+    no_difficulties: 'No difficulties found',
+    difficulty_title_label: 'Difficulty Title',
+    difficulty_title_placeholder: 'Brief description of the difficulty',
+    difficulty_description_placeholder: 'Describe the problem in detail...',
+    reported_by: 'Reported by',
+    submit_difficulty: 'Submit',
+    difficulty_status_update: 'Update Status',
   },
 } as const;
 

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Bug, MessageSquare, Lightbulb, Activity,
   AlertTriangle, BookOpen, BarChart3, Users, Settings, Package,
-  ShieldCheck, Zap, UserCheck
+  ShieldCheck, Zap, UserCheck, Frown
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -28,7 +28,8 @@ export function Sidebar() {
     { href: '/users', label: t('nav_users'), icon: Users, roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/clients', label: t('nav_clients'), icon: UserCheck, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/products', label: t('nav_products'), icon: Package, roles: ['ADMIN', 'TEAM_LEADER'] },
-    { href: '/settings', label: t('nav_settings'), icon: Settings, roles: ['ADMIN'] },
+    { href: '/difficulties', label: t('nav_difficulties'), icon: Frown, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
+    { href: '/settings', label: t('nav_settings'), icon: Settings, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
   ];
 
   const filtered = navItems.filter(item => user && item.roles.includes(user.role));

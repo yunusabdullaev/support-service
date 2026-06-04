@@ -17,6 +17,7 @@ import { ReportsModule } from './reports/reports.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { SettingsModule } from './settings/settings.module';
 import { ClientsModule } from './clients/clients.module';
+import { DifficultiesModule } from './difficulties/difficulties.module';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { AppController } from './app.controller';
@@ -52,6 +53,7 @@ import { AppService } from './app.service';
     TelegramModule,
     SettingsModule,
     ClientsModule,
+    DifficultiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

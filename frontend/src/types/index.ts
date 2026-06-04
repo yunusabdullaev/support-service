@@ -152,3 +152,18 @@ export interface DashboardStats {
   activeIncidents: number;
   weekIncidents: number;
 }
+
+export type DifficultyStatus = 'NEW' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED';
+
+export interface Difficulty {
+  id: string;
+  title: string;
+  product?: { id: string; name: string };
+  productId?: string;
+  description: string;
+  status: DifficultyStatus;
+  createdBy?: { id: string; fullName: string; role: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
