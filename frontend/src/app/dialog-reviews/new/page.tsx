@@ -15,12 +15,13 @@ function ScoreSelector({ label, value, onChange }: { label: string; value: numbe
     <div className="flex items-center justify-between py-3 border-b border-slate-800">
       <span className="text-sm text-slate-300">{label}</span>
       <div className="flex gap-2">
-        {[1, 2].map(v => (
+        {[0, 1, 2].map(v => (
           <button key={v} type="button" onClick={() => onChange(v)}
             className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${
               value === v
                 ? v === 2 ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-300'
-                  : 'bg-yellow-500/20 border border-yellow-500 text-yellow-300'
+                  : v === 1 ? 'bg-yellow-500/20 border border-yellow-500 text-yellow-300'
+                  : 'bg-red-500/20 border border-red-500 text-red-300'
                 : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-slate-600'
             }`}>{v}</button>
         ))}
