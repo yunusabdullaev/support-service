@@ -23,13 +23,14 @@ async function main() {
   // Users
   const adminPass = await bcrypt.hash('admin123', 10);
   const userPass = await bcrypt.hash('user123', 10);
+  const teamLeaderPass = await bcrypt.hash('Nukus@7125', 10);
 
   const admin = await prisma.user.create({
     data: { fullName: 'Admin User', email: 'admin@hippo.com', passwordHash: adminPass, role: 'ADMIN' },
   });
 
   const teamLeader = await prisma.user.create({
-    data: { fullName: 'Aziz Karimov', email: 'aziz@hippo.com', passwordHash: userPass, role: 'TEAM_LEADER' },
+    data: { fullName: 'Aziz Karimov', email: 'yunusabdullaev0707@gmail.com', passwordHash: teamLeaderPass, role: 'TEAM_LEADER' },
   });
 
   const operator1 = await prisma.user.create({
@@ -344,7 +345,7 @@ async function main() {
   console.log('\n🎉 Seed completed successfully!');
   console.log('\n📋 Login credentials:');
   console.log('  Admin:       admin@hippo.com / admin123');
-  console.log('  Team Leader: aziz@hippo.com / user123');
+  console.log('  Team Leader: yunusabdullaev0707@gmail.com / Nukus@7125');
   console.log('  Operator 1:  malika@hippo.com / user123');
   console.log('  Operator 2:  jamshid@hippo.com / user123');
   console.log('  Developer:   bobur@hippo.com / user123');
