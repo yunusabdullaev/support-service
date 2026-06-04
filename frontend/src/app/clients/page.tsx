@@ -1,0 +1,317 @@
+'use client';
+
+import { useState } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
+import { formatDate } from '@/lib/utils';
+import {
+  Plus, Search, UserCheck, Phone, MapPin, Briefcase,
+  GitBranch, Building2, Edit3, Trash2, X, Save, AlertCircle, Download
+} from 'lucide-react';
+import Link from 'next/link';
+
+interface Client {
+  id: string;
+  fullName: string;
+  phone: string;
+  direction?: string;
+  position?: string;
+  location?: string;
+  branchCount: number;
+  note?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export default function ClientsPage() {
+  const { t } = useI18n();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [search, setSearch] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const handleExportExcel = () => {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (fromDate) params.set('from', fromDate);
+    if (toDate) params.set('to', toDate);
+    window.open(`http://localhost:4000/clients/export/excel?${params.toString()}`, '_blank');
+  };
+  const [editClient, setEditClient] = useState<Client | null>(null);
+
+  const { data: clients = [], isLoading } = useQuery<Client[]>({
+    queryKey: ['clients', search, fromDate, toDate],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (fromDate) params.set('from', fromDate);
+      if (toDate) params.set('to', toDate);
+      return api.get(`/clients?${params.toString()}`).then(r => r.data);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/clients/${id}`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); setDeleteId(null); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Client> }) => api.patch(`/clients/${id}`, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); setEditClient(null); },
+  });
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">{t('nav_clients')}</h1>
+            <p className="text-slate-400 text-sm mt-0.5">{clients.length} {t('clients_count')}</p>
+          </div>
+          <div className="flex gap-2">
+            {(user?.role === 'TEAM_LEADER' || user?.role === 'ADMIN') && (
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-emerald-950/20"
+              >
+                <Download className="w-4 h-4" /> {t('export_excel')}
+              </button>
+            )}
+            <Link
+              href="/clients/new"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" /> {t('new_client')}
+            </Link>
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="glass-card p-4 flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-48">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('client_search_placeholder')}
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}
+              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <span className="text-slate-600 text-xs">-</span>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} title={t('date_to')}
+              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        {/* List */}
+        {isLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : clients.length === 0 ? (
+          <div className="glass-card flex flex-col items-center justify-center h-48 text-slate-500">
+            <UserCheck className="w-8 h-8 mb-2" />
+            <p>{t('no_clients')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {clients.map(client => (
+              <div key={client.id} className="glass-card p-5 hover:border-slate-600 transition-all duration-200">
+                <div className="flex items-start justify-between gap-3">
+                  {/* Avatar + name */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">
+                      {client.fullName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-white truncate">{client.fullName}</h3>
+                      {client.position && (
+                        <p className="text-xs text-slate-400 truncate">{client.position}</p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => setEditClient(client)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                      title={t('edit')}
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(client.id)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                      title={t('delete')}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info grid */}
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Phone className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                    <span className="truncate">{client.phone}</span>
+                  </div>
+                  {client.direction && (
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <Briefcase className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                      <span className="truncate">{client.direction}</span>
+                    </div>
+                  )}
+                  {client.location && (
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <MapPin className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                      <span className="truncate">{client.location}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                    <span>{client.branchCount} {t('branch')}</span>
+                  </div>
+                </div>
+
+                {client.note && (
+                  <p className="mt-3 text-xs text-slate-500 line-clamp-2 border-t border-slate-800/60 pt-2">
+                    {client.note}
+                  </p>
+                )}
+                <p className="mt-2 text-xs text-slate-700">{formatDate(client.createdAt)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirm Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 max-w-sm w-full mx-4 animate-fade-in">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">{t('confirm_delete')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('confirm_delete_client')}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate(deleteId)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors"
+              >
+                {t('delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editClient && (
+        <EditClientModal
+          client={editClient}
+          onClose={() => setEditClient(null)}
+          onSave={(data) => updateMutation.mutate({ id: editClient.id, data })}
+          isPending={updateMutation.isPending}
+        />
+      )}
+    </AppLayout>
+  );
+}
+
+function EditClientModal({ client, onClose, onSave, isPending }: {
+  client: Client;
+  onClose: () => void;
+  onSave: (data: Partial<Client>) => void;
+  isPending: boolean;
+}) {
+  const { t } = useI18n();
+  const [form, setForm] = useState({
+    fullName: client.fullName,
+    phone: client.phone,
+    direction: client.direction || '',
+    position: client.position || '',
+    location: client.location || '',
+    branchCount: client.branchCount,
+    note: client.note || '',
+  });
+  const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="glass-card p-6 max-w-lg w-full mx-4 animate-fade-in max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-sm font-semibold text-white">{t('edit_client')}</h3>
+          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="block text-xs text-slate-400 mb-1">{t('client_name')} *</label>
+              <input value={form.fullName} onChange={e => set('fullName', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_phone')} *</label>
+              <input value={form.phone} onChange={e => set('phone', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_branches')}</label>
+              <input type="number" min={1} value={form.branchCount} onChange={e => set('branchCount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_direction')}</label>
+              <input value={form.direction} onChange={e => set('direction', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_position')}</label>
+              <input value={form.position} onChange={e => set('position', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-slate-400 mb-1">{t('client_location')}</label>
+              <input value={form.location} onChange={e => set('location', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-slate-400 mb-1">{t('note')}</label>
+              <textarea value={form.note} onChange={e => set('note', e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none" />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">{t('cancel')}</button>
+            <button
+              onClick={() => onSave(form)}
+              disabled={isPending}
+              className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Save className="w-3.5 h-3.5" />{t('save')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

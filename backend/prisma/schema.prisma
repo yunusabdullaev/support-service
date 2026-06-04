@@ -1,0 +1,334 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  ADMIN
+  TEAM_LEADER
+  OPERATOR
+  DEVELOPER
+}
+
+enum BugPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum BugStatus {
+  NEW
+  CONFIRMED
+  IN_PROGRESS
+  WAITING
+  FIXED
+  CLOSED
+  REJECTED
+}
+
+enum ImprovementStatus {
+  NEW
+  UNDER_REVIEW
+  PLANNED
+  IN_DEVELOPMENT
+  DONE
+  REJECTED
+}
+
+enum ServiceStatus {
+  ONLINE
+  DEGRADED
+  OFFLINE
+  UNKNOWN
+}
+
+enum IncidentSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum DialogReviewStatus {
+  DRAFT
+  REVIEWED
+  NEEDS_TRAINING
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ArticleCategory {
+  CRM
+  SIPUNI
+  SARKOR
+  MODERATOR
+  COMMON_QUESTIONS
+  TROUBLESHOOTING
+  INTERNAL_RULES
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id           String   @id @default(cuid())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(OPERATOR)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  createdBugs        Bug[]            @relation("BugCreatedBy")
+  assignedBugs       Bug[]            @relation("BugAssignedTo")
+  bugComments        BugComment[]
+  dialogReviews      DialogReview[]   @relation("DialogReviewedBy")
+  operatorDialogs    DialogReview[]   @relation("DialogOperator")
+  createdImprovements ImprovementRequest[] @relation("ImprovementCreatedBy")
+  incidentResponsible Incident[]
+  createdArticles    KnowledgeArticle[] @relation("ArticleCreatedBy")
+  updatedArticles    KnowledgeArticle[] @relation("ArticleUpdatedBy")
+
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  bugs            Bug[]
+  dialogReviews   DialogReview[]
+  improvements    ImprovementRequest[]
+  serviceMonitors ServiceMonitor[]
+  articles        KnowledgeArticle[]
+
+  @@map("products")
+}
+
+model DialogReview {
+  id                  String             @id @default(cuid())
+  operatorId          String
+  productId           String
+  clientName          String
+  dialogText          String             @db.Text
+  reviewDate          DateTime           @default(now())
+  firstResponseScore  Int                @default(0)
+  understandingScore  Int                @default(0)
+  solutionScore       Int                @default(0)
+  communicationScore  Int                @default(0)
+  closingScore        Int                @default(0)
+  totalScore          Int                @default(0)
+  mistakes            String?            @db.Text
+  comment             String?            @db.Text
+  status              DialogReviewStatus @default(DRAFT)
+  reviewedById        String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  operator   User    @relation("DialogOperator", fields: [operatorId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
+  reviewedBy User?   @relation("DialogReviewedBy", fields: [reviewedById], references: [id])
+
+  @@map("dialog_reviews")
+}
+
+model Bug {
+  id               String      @id @default(cuid())
+  title            String
+  productId        String
+  module           String?
+  description      String      @db.Text
+  stepsToReproduce String?     @db.Text
+  expectedResult   String?     @db.Text
+  actualResult     String?     @db.Text
+  priority         BugPriority @default(MEDIUM)
+  status           BugStatus   @default(NEW)
+  assignedToId     String?
+  createdById      String
+  deadline         DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  product     Product         @relation(fields: [productId], references: [id])
+  assignedTo  User?           @relation("BugAssignedTo", fields: [assignedToId], references: [id])
+  createdBy   User            @relation("BugCreatedBy", fields: [createdById], references: [id])
+  attachments BugAttachment[]
+  comments    BugComment[]
+
+  @@map("bugs")
+}
+
+model BugAttachment {
+  id        String   @id @default(cuid())
+  bugId     String
+  fileUrl   String
+  fileName  String
+  fileType  String
+  createdAt DateTime @default(now())
+
+  bug Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
+
+  @@map("bug_attachments")
+}
+
+model BugComment {
+  id        String   @id @default(cuid())
+  bugId     String
+  userId    String
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+
+  bug  Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("bug_comments")
+}
+
+model ImprovementRequest {
+  id                    String            @id @default(cuid())
+  title                 String
+  productId             String
+  description           String            @db.Text
+  requestedByClientsCount Int             @default(0)
+  source                String?
+  businessValue         String?           @db.Text
+  status                ImprovementStatus @default(NEW)
+  createdById           String
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  product   Product @relation(fields: [productId], references: [id])
+  createdBy User    @relation("ImprovementCreatedBy", fields: [createdById], references: [id])
+
+  @@map("improvement_requests")
+}
+
+model ServiceMonitor {
+  id                   String        @id @default(cuid())
+  name                 String
+  productId            String?
+  url                  String
+  method               String        @default("GET")
+  expectedStatusCode   Int           @default(200)
+  checkIntervalSeconds Int           @default(300)
+  currentStatus        ServiceStatus @default(UNKNOWN)
+  responseTimeMs       Int?
+  isActive             Boolean       @default(true)
+  lastCheckedAt        DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  product   Product?     @relation(fields: [productId], references: [id])
+  logs      MonitorLog[]
+  incidents Incident[]
+
+  @@map("service_monitors")
+}
+
+model MonitorLog {
+  id              String        @id @default(cuid())
+  serviceMonitorId String
+  status          ServiceStatus
+  responseTimeMs  Int?
+  statusCode      Int?
+  checkedAt       DateTime      @default(now())
+  errorMessage    String?
+
+  serviceMonitor ServiceMonitor @relation(fields: [serviceMonitorId], references: [id], onDelete: Cascade)
+
+  @@map("monitor_logs")
+}
+
+model Incident {
+  id                String           @id @default(cuid())
+  serviceMonitorId  String?
+  title             String
+  description       String?          @db.Text
+  severity          IncidentSeverity @default(HIGH)
+  status            IncidentStatus   @default(OPEN)
+  startedAt         DateTime         @default(now())
+  resolvedAt        DateTime?
+  durationMinutes   Int?
+  rootCause         String?          @db.Text
+  responsibleUserId String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  serviceMonitor  ServiceMonitor? @relation(fields: [serviceMonitorId], references: [id])
+  responsibleUser User?           @relation(fields: [responsibleUserId], references: [id])
+
+  @@map("incidents")
+}
+
+model KnowledgeArticle {
+  id          String          @id @default(cuid())
+  title       String
+  productId   String?
+  category    ArticleCategory @default(COMMON_QUESTIONS)
+  content     String          @db.Text
+  status      ArticleStatus   @default(DRAFT)
+  createdById String
+  updatedById String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  product   Product? @relation(fields: [productId], references: [id])
+  createdBy User     @relation("ArticleCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?    @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("knowledge_articles")
+}
+
+model TelegramSetting {
+  id        String   @id @default(cuid())
+  botToken  String
+  chatId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("telegram_settings")
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  fullName    String
+  phone       String
+  direction   String?
+  position    String?
+  location    String?
+  branchCount Int      @default(1)
+  note        String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("clients")
+}

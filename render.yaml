@@ -1,0 +1,43 @@
+services:
+  # NestJS Backend API Service
+  - type: web
+    name: hippo-support-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hippo-support-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://hippo-support-frontend.onrender.com
+      - key: UPLOAD_DIR
+        value: ./uploads
+
+  # Next.js Frontend Web Service
+  - type: web
+    name: hippo-support-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://hippo-support-backend.onrender.com
+
+databases:
+  # PostgreSQL Database Instance
+  - name: hippo-support-db
+    databaseName: hippo_support
+    user: hippo
+    plan: free
