@@ -1,28 +1,12 @@
 'use client';
 
 import { useAuth } from '@/lib/auth';
-import { useTheme } from '@/lib/theme';
-import { useI18n, Locale } from '@/lib/i18n';
-import { LogOut, Bell, Sun, Moon } from 'lucide-react';
-
-const LOCALE_FLAGS: Record<Locale, string> = {
-  uz: '🇺🇿',
-  ru: '🇷🇺',
-  en: '🇬🇧',
-};
-
-const LOCALE_LABELS: Record<Locale, string> = {
-  uz: 'UZ',
-  ru: 'RU',
-  en: 'EN',
-};
+import { useI18n } from '@/lib/i18n';
+import { LogOut, Bell } from 'lucide-react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const { locale, setLocale, t } = useI18n();
-
-  const locales: Locale[] = ['uz', 'ru', 'en'];
+  const { t } = useI18n();
 
   return (
     <header className="fixed top-0 left-64 right-0 h-16 backdrop-blur-md border-b flex items-center justify-between px-6 z-30 navbar">
@@ -34,38 +18,6 @@ export function Navbar() {
 
       {/* Right: Controls */}
       <div className="flex items-center gap-1">
-
-        {/* Language Switcher */}
-        <div className="flex items-center gap-0.5 bg-slate-800/60 rounded-lg p-1 mr-2 border border-slate-700">
-          {locales.map((l) => (
-            <button
-              key={l}
-              onClick={() => setLocale(l)}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 ${
-                locale === l
-                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-900/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/60'
-              }`}
-              title={`${LOCALE_FLAGS[l]} ${l.toUpperCase()}`}
-            >
-              {LOCALE_FLAGS[l]} {LOCALE_LABELS[l]}
-            </button>
-          ))}
-        </div>
-
-        {/* Theme Toggle */}
-        <button
-          id="theme-toggle"
-          onClick={toggleTheme}
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all duration-200"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
-        </button>
 
         {/* Notifications */}
         <button className="relative p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all duration-200">
