@@ -21,12 +21,15 @@ export class TelegramService {
       return false;
     }
 
-    // Build target list: chatId (group) + recipients list from settings
+    // Build target list: chatId + comma-separated recipients string
     const targets: string[] = [];
-    if (settings?.chatId) targets.push(settings.chatId);
-    (settings?.recipients || []).forEach((r: string) => {
-      if (r && !targets.includes(r)) targets.push(r);
-    });
+    if (settings?.chatId?.trim()) targets.push(settings.chatId.trim());
+    if (settings?.recipients?.trim()) {
+      settings.recipients.split(',').forEach((r: string) => {
+        const t = r.trim();
+        if (t && !targets.includes(t)) targets.push(t);
+      });
+    }
 
     if (targets.length === 0) {
       this.logger.warn('No Telegram recipients configured');

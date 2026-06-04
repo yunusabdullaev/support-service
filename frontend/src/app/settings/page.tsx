@@ -131,7 +131,7 @@ export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const qc = useQueryClient();
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [form, setForm] = useState<{ botToken: string; chatId: string; isActive: boolean; recipients?: string[] }>({ botToken: '', chatId: '', isActive: false });
+  const [form, setForm] = useState({ botToken: '', chatId: '', isActive: false });
   const [recipients, setRecipients] = useState<string[]>([]);
   const [newRecipient, setNewRecipient] = useState('');
 
@@ -145,7 +145,7 @@ export default function SettingsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: typeof form) => api.patch('/settings/telegram', data),
+    mutationFn: (data: any) => api.patch('/settings/telegram', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['telegram-settings'] }),
   });
 
@@ -160,9 +160,12 @@ export default function SettingsPage() {
   const displayChatId = form.chatId || displaySettings.chatId || '';
   const displayActive = form.isActive ?? displaySettings.isActive ?? false;
 
-  // Sync recipients from server
+  // Sync recipients from server (stored as comma-separated string)
   React.useEffect(() => {
-    if (settings?.recipients) setRecipients(settings.recipients);
+    if (settings?.recipients) {
+      const list = settings.recipients.split(',').map((r: string) => r.trim()).filter(Boolean);
+      setRecipients(list);
+    }
   }, [settings]);
 
   const addRecipient = () => {
@@ -175,6 +178,15 @@ export default function SettingsPage() {
 
   const removeRecipient = (idx: number) => {
     setRecipients(r => r.filter((_, i) => i !== idx));
+  };
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      botToken: displayToken,
+      chatId: displayChatId,
+      isActive: displayActive,
+      recipients: recipients.join(','),  // save as comma-separated string
+    });
   };
 
   return (
@@ -370,7 +382,7 @@ export default function SettingsPage() {
                         {testMutation.isPending ? t('testing') : t('test_connection')}
                       </button>
                       <button type="button"
-                        onClick={() => updateMutation.mutate({ botToken: displayToken, chatId: displayChatId, isActive: displayActive, recipients })}
+                        onClick={handleSave}
                         disabled={updateMutation.isPending}
                         className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
                         {updateMutation.isPending ? t('saving') : t('save')}

@@ -5,7 +5,7 @@ import { TelegramService } from '../telegram/telegram.service';
 export class UpdateTelegramDto {
   botToken?: string;
   chatId?: string;
-  recipients?: string[];
+  recipients?: string; // comma-separated chat IDs: "123,456,789"
   isActive?: boolean;
 }
 
@@ -23,7 +23,7 @@ export class SettingsService {
         data: {
           botToken: process.env.TELEGRAM_BOT_TOKEN || '',
           chatId: process.env.TELEGRAM_CHAT_ID || '',
-          recipients: [],
+          recipients: '',
           isActive: false,
         },
       });
@@ -45,20 +45,14 @@ export class SettingsService {
       return { success: false, message: 'Bot token kiritilmagan' };
     }
 
-    // Collect all targets: chatId + recipients list
-    const targets: string[] = [];
-    if (settings.chatId) targets.push(settings.chatId);
-    (settings.recipients || []).forEach(r => {
-      if (r && !targets.includes(r)) targets.push(r);
-    });
+    const targets = this.parseRecipients(settings.chatId, settings.recipients);
 
     if (targets.length === 0) {
-      // No chat IDs — just validate token
       const valid = await this.telegramService.validateToken(settings.botToken);
       return {
         success: valid,
         message: valid
-          ? '✅ Bot token to\'g\'ri! Nomer qo\'shsangiz xabar yuboriladi.'
+          ? '✅ Bot token to\'g\'ri! Chat ID qo\'shsangiz xabar yuboriladi.'
           : '❌ Bot token noto\'g\'ri yoki bot topilmadi',
       };
     }
@@ -75,5 +69,17 @@ export class SettingsService {
         ? `✅ ${sent} ta raqamga test xabar yuborildi!`
         : '❌ Xabar yuborishda xato',
     };
+  }
+
+  parseRecipients(chatId: string, recipients: string): string[] {
+    const targets: string[] = [];
+    if (chatId?.trim()) targets.push(chatId.trim());
+    if (recipients?.trim()) {
+      recipients.split(',').forEach(r => {
+        const t = r.trim();
+        if (t && !targets.includes(t)) targets.push(t);
+      });
+    }
+    return targets;
   }
 }
