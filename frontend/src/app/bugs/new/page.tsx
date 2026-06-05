@@ -28,6 +28,7 @@ export default function NewBugPage() {
   const [form, setForm] = useState({
     title: '',
     productId: '',
+    clientPhone: '',
     description: '',
     priority: 'MEDIUM',
     assignedToId: '',
@@ -148,7 +149,28 @@ export default function NewBugPage() {
             </select>
           </div>
 
-          {/* Priority */}
+          {/* Client Phone */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              Mijoz telefon raqami
+              <span className="ml-1.5 text-xs font-normal text-slate-500">(ixtiyoriy)</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-mono">+</span>
+              <input
+                id="bug-client-phone"
+                type="tel"
+                value={form.clientPhone}
+                onChange={e => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                  set('clientPhone', digits);
+                }}
+                placeholder="998901234567"
+                className="w-full pl-7 pr-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Xato haqida xabar bergan mijoz raqami</p>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">{t('priority')}</label>
             <div className="grid grid-cols-4 gap-2">

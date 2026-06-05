@@ -175,6 +175,7 @@ model Bug {
   title            String
   productId        String
   module           String?
+  clientPhone      String?     // mijoz telefon raqami
   description      String      @db.Text
   stepsToReproduce String?     @db.Text
   expectedResult   String?     @db.Text

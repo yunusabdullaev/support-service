@@ -82,6 +82,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
               <StatusBadge status={bug.status} />
               {bug.product && <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{bug.product.name}</span>}
               {bug.module && <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{bug.module}</span>}
+              {bug.clientPhone && (
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                  📞 +{bug.clientPhone}
+                </span>
+              )}
             </div>
             <h1 className="text-xl font-bold text-white">{bug.title}</h1>
             <p className="text-slate-500 text-sm mt-1">

@@ -6,6 +6,7 @@ export class CreateBugDto {
   title: string;
   productId: string;
   module?: string;
+  clientPhone?: string;
   description: string;
   stepsToReproduce?: string;
   expectedResult?: string;
@@ -88,6 +89,7 @@ export class BugsService {
         title: dto.title,
         productId: dto.productId,
         module: dto.module,
+        clientPhone: dto.clientPhone,
         description: dto.description,
         stepsToReproduce: dto.stepsToReproduce,
         expectedResult: dto.expectedResult,

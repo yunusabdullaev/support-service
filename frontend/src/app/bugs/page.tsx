@@ -170,6 +170,7 @@ export default function BugsPage() {
                           <p className="text-sm font-medium text-slate-200 group-hover/link:text-indigo-400 transition-colors">{bug.title}</p>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                             {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded">{bug.module}</span>}
+                            {bug.clientPhone && <span className="text-[10px] font-mono text-emerald-400/80 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">+{bug.clientPhone}</span>}
                             <span className="text-xs text-slate-400 line-clamp-1 flex-1">{bug.description}</span>
                           </div>
                         </Link>
