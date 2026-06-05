@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -38,6 +38,18 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
   const [isUploading, setIsUploading] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showStatusMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
+        setShowStatusMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showStatusMenu]);
 
   const { data: bug, isLoading } = useQuery<Bug>({
     queryKey: ['bug', id],
@@ -272,7 +284,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
                 <div>
                   <p className="text-xs text-slate-500 mb-1.5">{t('status')}</p>
                   {canChangeStatus ? (
-                    <div className="relative">
+                    <div className="relative" ref={statusMenuRef}>
                       <button
                         onClick={() => setShowStatusMenu(v => !v)}
                         className="flex items-center gap-2 w-full hover:opacity-80 transition-opacity"
@@ -387,10 +399,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      {/* Status menu backdrop */}
-      {showStatusMenu && (
-        <div className="fixed inset-0 z-10" onClick={() => setShowStatusMenu(false)} />
-      )}
 
       {/* Lightbox */}
       {lightboxSrc && (
