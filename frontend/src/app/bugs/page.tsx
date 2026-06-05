@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Bug, BugStatus, BugPriority, Product } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { ProductBadge } from '@/components/ProductBadge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import {
@@ -108,6 +108,25 @@ export default function BugsPage() {
     },
     refetchInterval: 5000,
   });
+
+  const prevDataRef = useRef<{ bugCount: number; commentCount: number; statusHash: string } | null>(null);
+
+  useEffect(() => {
+    if (isLoading || !bugs.length) return;
+
+    const bugCount = bugs.length;
+    const commentCount = bugs.reduce((sum, b) => sum + (b._count?.comments || 0), 0);
+    const statusHash = bugs.map(b => `${b.id}-${b.status}`).join('|');
+
+    if (prevDataRef.current !== null) {
+      const prev = prevDataRef.current;
+      if (bugCount > prev.bugCount || commentCount > prev.commentCount || statusHash !== prev.statusHash) {
+        playNotificationSound();
+      }
+    }
+
+    prevDataRef.current = { bugCount, commentCount, statusHash };
+  }, [bugs, isLoading]);
 
   const filtered = bugs.filter(b => !search || b.title.toLowerCase().includes(search.toLowerCase()));
   const bugStatuses: BugStatus[] = ['NEW', 'CONFIRMED', 'IN_PROGRESS', 'WAITING', 'FIXED', 'CLOSED', 'REJECTED'];

@@ -72,3 +72,35 @@ export const ROLE_LABELS: Record<string, string> = {
   OPERATOR: 'Operator',
   DEVELOPER: 'Developer',
 };
+
+export function playNotificationSound() {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    const playTone = (freq: number, start: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      
+      gain.gain.setValueAtTime(0.08, start);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(start);
+      osc.stop(start + duration);
+    };
+    
+    // Soft double chime: D5 (587.33Hz) then A5 (880Hz)
+    playTone(587.33, ctx.currentTime, 0.12);
+    playTone(880, ctx.currentTime + 0.08, 0.3);
+  } catch (e) {
+    console.warn('Audio playback blocked or unsupported:', e);
+  }
+}

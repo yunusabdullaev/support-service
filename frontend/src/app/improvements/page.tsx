@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { ImprovementRequest, ImprovementStatus, Product } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ProductBadge } from '@/components/ProductBadge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import {
   Plus, Lightbulb, TrendingUp, UserPlus, Check,
@@ -32,6 +32,8 @@ export default function ImprovementsPage() {
   const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
   const [upvotePhone, setUpvotePhone] = useState('');
   const [undoUpvoteId, setUndoUpvoteId] = useState<string | null>(null);
+
+
 
   useEffect(() => {
     if (detailItem) {
@@ -85,6 +87,24 @@ export default function ImprovementsPage() {
     },
     refetchInterval: 5000,
   });
+
+  const prevDataRef = useRef<{ count: number; statusHash: string } | null>(null);
+
+  useEffect(() => {
+    if (isLoading || !improvements.length) return;
+
+    const count = improvements.length;
+    const statusHash = improvements.map(imp => `${imp.id}-${imp.status}`).join('|');
+
+    if (prevDataRef.current !== null) {
+      const prev = prevDataRef.current;
+      if (count > prev.count || statusHash !== prev.statusHash) {
+        playNotificationSound();
+      }
+    }
+
+    prevDataRef.current = { count, statusHash };
+  }, [improvements, isLoading]);
 
   const upvoteMutation = useMutation({
     mutationFn: ({ id, phone }: { id: string; phone: string }) =>

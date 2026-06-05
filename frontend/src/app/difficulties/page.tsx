@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Difficulty, DifficultyStatus, Product } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ProductBadge } from '@/components/ProductBadge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import {
@@ -43,6 +43,8 @@ export default function DifficultiesPage() {
   const [toDate, setToDate] = useState('');
   const [selected, setSelected] = useState<Difficulty | null>(null);
   const [newStatus, setNewStatus] = useState<DifficultyStatus | ''>('');
+
+
 
   useEffect(() => {
     if (selected) {
@@ -84,6 +86,24 @@ export default function DifficultiesPage() {
     },
     refetchInterval: 5000,
   });
+
+  const prevDataRef = useRef<{ count: number; statusHash: string } | null>(null);
+
+  useEffect(() => {
+    if (isLoading || !difficulties.length) return;
+
+    const count = difficulties.length;
+    const statusHash = difficulties.map(d => `${d.id}-${d.status}`).join('|');
+
+    if (prevDataRef.current !== null) {
+      const prev = prevDataRef.current;
+      if (count > prev.count || statusHash !== prev.statusHash) {
+        playNotificationSound();
+      }
+    }
+
+    prevDataRef.current = { count, statusHash };
+  }, [difficulties, isLoading]);
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
