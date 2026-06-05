@@ -20,7 +20,7 @@ export function Sidebar() {
     { href: '/dashboard',      label: t('nav_dashboard'),       icon: LayoutDashboard, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
     { href: '/difficulties',   label: t('nav_difficulties'),    icon: Frown,           roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
     { href: '/bugs',           label: t('nav_bugs'),            icon: Bug,             roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
-    { href: '/improvements',   label: t('nav_improvements'),   icon: Lightbulb,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
+    { href: '/improvements',   label: t('nav_improvements'),   icon: Lightbulb,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
     { href: '/clients',        label: t('nav_clients'),         icon: UserCheck,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/knowledge-base', label: t('nav_knowledge_base'), icon: BookOpen,        roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/dialog-reviews', label: t('nav_dialog_reviews'), icon: MessageSquare,   roles: ['ADMIN', 'TEAM_LEADER'] },
