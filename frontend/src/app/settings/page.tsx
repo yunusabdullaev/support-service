@@ -137,11 +137,12 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const isAdmin = user?.role === 'ADMIN';
+  const canManageBot = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['telegram-settings'],
     queryFn: () => api.get('/settings/telegram').then(r => r.data),
-    enabled: isAdmin,
+    enabled: canManageBot,
   });
 
   React.useEffect(() => {
@@ -269,8 +270,8 @@ export default function SettingsPage() {
             <ChangePasswordForm />
           </div>
 
-          {/* Right Side: Telegram & Monitoring Settings (ADMIN ONLY) */}
-          {isAdmin && (
+          {/* Right Side: Telegram & Monitoring Settings (ADMIN + TEAM_LEADER) */}
+          {canManageBot && (
             <div className="space-y-6">
               <div className="glass-card p-6">
                 {/* Header */}
