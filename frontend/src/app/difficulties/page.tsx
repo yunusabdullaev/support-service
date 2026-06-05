@@ -285,11 +285,6 @@ export default function DifficultiesPage() {
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <StatusBadge status={d.status} />
                       {d.product && <ProductBadge name={d.product.name} size="xs" />}
-                      {d.clientPhone && (
-                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded flex-shrink-0">
-                          📞 +{d.clientPhone}
-                        </span>
-                      )}
                     </div>
                     <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1 flex items-center gap-2 flex-wrap">
                       {d.title}
@@ -301,6 +296,12 @@ export default function DifficultiesPage() {
                       )}
                     </h3>
                     <p className="text-xs text-slate-400 line-clamp-2">{d.description}</p>
+                    {d.clientPhone && (
+                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-slate-600 flex-shrink-0" />
+                        {d.clientPhone}
+                      </p>
+                    )}
                     <div className="flex items-center gap-4 mt-2">
                       {d.createdBy && (
                         <span className="flex items-center gap-1 text-[11px] text-slate-600">

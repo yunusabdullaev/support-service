@@ -393,7 +393,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
                       <img
                         src={`${API_URL}${a.fileUrl}`}
                         alt={a.fileName}
-                        className="w-full h-full object-cover cursor-zoom-in"
+                        className="w-full h-full object-cover cursor-zoom-in bg-white"
                         onClick={() => setLightboxSrc(`${API_URL}${a.fileUrl}`)}
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
@@ -426,7 +426,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
           <button onClick={() => setLightboxSrc(null)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
-          <img src={lightboxSrc} alt="" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={e => e.stopPropagation()} />
+          <img src={lightboxSrc} alt="" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white" onClick={e => e.stopPropagation()} />
         </div>
       )}
     </AppLayout>
