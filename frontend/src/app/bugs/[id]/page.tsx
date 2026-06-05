@@ -59,6 +59,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     if (bug) {
       localStorage.setItem(`viewed_bug_${bug.id}`, new Date().toISOString());
+      localStorage.setItem(`viewed_bug_comments_${bug.id}`, (bug.comments?.length || 0).toString());
     }
   }, [bug]);
 
