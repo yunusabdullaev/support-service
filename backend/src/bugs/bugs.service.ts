@@ -158,6 +158,22 @@ export class BugsService {
     });
   }
 
+  async updateComment(commentId: string, userId: string, dto: CreateCommentDto) {
+    const c = await this.prisma.bugComment.findUnique({ where: { id: commentId } });
+    if (!c) throw new Error('Comment not found');
+    return this.prisma.bugComment.update({
+      where: { id: commentId },
+      data: { comment: dto.comment },
+      include: { user: { select: { id: true, fullName: true, role: true } } },
+    });
+  }
+
+  async deleteComment(commentId: string, userId: string) {
+    const c = await this.prisma.bugComment.findUnique({ where: { id: commentId } });
+    if (!c) throw new Error('Comment not found');
+    return this.prisma.bugComment.delete({ where: { id: commentId } });
+  }
+
   async addAttachment(bugId: string, file: any) {
     await this.findOne(bugId);
     return this.prisma.bugAttachment.create({

@@ -80,6 +80,24 @@ export class BugsController {
     return this.bugsService.addComment(id, user.id, dto);
   }
 
+  @Patch(':id/comments/:commentId')
+  updateComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @Body() dto: CreateCommentDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.bugsService.updateComment(commentId, user.id, dto);
+  }
+
+  @Delete(':id/comments/:commentId')
+  deleteComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.bugsService.deleteComment(commentId, user.id);
+  }
+
   @Post(':id/attachments')
   @UseInterceptors(FileInterceptor('file'))
   addAttachment(@Param('id') id: string, @UploadedFile() file: any) {
