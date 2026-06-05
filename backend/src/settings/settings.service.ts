@@ -4,8 +4,7 @@ import { TelegramService } from '../telegram/telegram.service';
 
 export class UpdateTelegramDto {
   botToken?: string;
-  chatId?: string;
-  recipients?: string; // comma-separated chat IDs: "123,456,789"
+  phones?: string; // comma-separated phone numbers
   isActive?: boolean;
 }
 
@@ -20,12 +19,7 @@ export class SettingsService {
     let settings = await this.prisma.telegramSetting.findFirst();
     if (!settings) {
       settings = await this.prisma.telegramSetting.create({
-        data: {
-          botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-          chatId: process.env.TELEGRAM_CHAT_ID || '',
-          recipients: '',
-          isActive: false,
-        },
+        data: { botToken: '', phones: '', isActive: false },
       });
     }
     return settings;
@@ -41,45 +35,55 @@ export class SettingsService {
 
   async testTelegram() {
     const settings = await this.getTelegramSettings();
-    if (!settings.botToken) {
-      return { success: false, message: 'Bot token kiritilmagan' };
+
+    if (!settings.botToken?.trim()) {
+      return { success: false, message: '❌ Bot token kiritilmagan' };
     }
 
-    const targets = this.parseRecipients(settings.chatId, settings.recipients);
+    // Validate token first
+    const tokenValid = await this.telegramService.validateToken(settings.botToken);
+    if (!tokenValid) {
+      return { success: false, message: '❌ Bot token noto\'g\'ri yoki bot topilmadi' };
+    }
 
-    if (targets.length === 0) {
-      const valid = await this.telegramService.validateToken(settings.botToken);
+    // Find chatIds for configured phones
+    const phones = settings.phones?.split(',').map(p => p.trim()).filter(Boolean) || [];
+    if (phones.length === 0) {
+      return { success: true, message: '✅ Bot token to\'g\'ri! Telefon raqam qo\'shsangiz xabar yuboriladi.' };
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: { phone: { in: phones } },
+      select: { fullName: true, phone: true, telegramChatId: true },
+    });
+
+    const withChat = users.filter(u => u.telegramChatId);
+    const withoutChat = users.filter(u => !u.telegramChatId);
+
+    if (withChat.length === 0) {
+      const names = users.map(u => u.fullName).join(', ');
       return {
-        success: valid,
-        message: valid
-          ? '✅ Bot token to\'g\'ri! Chat ID qo\'shsangiz xabar yuboriladi.'
-          : '❌ Bot token noto\'g\'ri yoki bot topilmadi',
+        success: false,
+        message: `⚠️ Raqamlar topildi (${names || phones.join(', ')}), lekin ular Telegram chatId ni hali bog'lamagan. Hodimlar sahifasida ularning Chat ID'sini kiriting.`,
       };
     }
 
+    // Send test messages
     const results = await Promise.all(
-      targets.map(chatId =>
-        this.telegramService.testConnection(settings.botToken, chatId)
+      withChat.map(u =>
+        this.telegramService.testConnection(
+          settings.botToken,
+          u.telegramChatId!,
+          u.fullName,
+        )
       )
     );
     const sent = results.filter(Boolean).length;
-    return {
-      success: sent > 0,
-      message: sent > 0
-        ? `✅ ${sent} ta raqamga test xabar yuborildi!`
-        : '❌ Xabar yuborishda xato',
-    };
-  }
 
-  parseRecipients(chatId: string, recipients: string): string[] {
-    const targets: string[] = [];
-    if (chatId?.trim()) targets.push(chatId.trim());
-    if (recipients?.trim()) {
-      recipients.split(',').forEach(r => {
-        const t = r.trim();
-        if (t && !targets.includes(t)) targets.push(t);
-      });
+    let msg = `✅ ${sent} ta foydalanuvchiga test xabar yuborildi!`;
+    if (withoutChat.length > 0) {
+      msg += ` ⚠️ ${withoutChat.length} ta (${withoutChat.map(u => u.fullName).join(', ')}) — Chat ID yo'q.`;
     }
-    return targets;
+    return { success: sent > 0, message: msg };
   }
 }

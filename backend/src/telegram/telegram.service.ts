@@ -12,32 +12,50 @@ export class TelegramService {
     return this.prisma.telegramSetting.findFirst({ where: { isActive: true } });
   }
 
+  /**
+   * Send message to all configured phone numbers.
+   * Resolves phone → User.telegramChatId → sends via Bot API.
+   */
   async sendMessage(text: string): Promise<boolean> {
     const settings = await this.getSettings();
-    const token = settings?.botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const token = settings?.botToken?.trim() || process.env.TELEGRAM_BOT_TOKEN;
 
     if (!token) {
-      this.logger.warn('Telegram not configured (no token), skipping notification');
+      this.logger.warn('Telegram: bot token yo\'q, xabar o\'tkazib yuborildi');
       return false;
     }
 
-    // Build target list: chatId + comma-separated recipients string
-    const targets: string[] = [];
-    if (settings?.chatId?.trim()) targets.push(settings.chatId.trim());
-    if (settings?.recipients?.trim()) {
-      settings.recipients.split(',').forEach((r: string) => {
-        const t = r.trim();
-        if (t && !targets.includes(t)) targets.push(t);
-      });
+    // Parse phone list
+    const phones = (settings?.phones || '')
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+
+    if (phones.length === 0) {
+      this.logger.warn('Telegram: telefon raqamlar sozlanmagan');
+      return false;
     }
 
-    if (targets.length === 0) {
-      this.logger.warn('No Telegram recipients configured');
+    // Resolve phone numbers to telegramChatId via User table
+    const users = await this.prisma.user.findMany({
+      where: {
+        phone: { in: phones },
+        telegramChatId: { not: null },
+        isActive: true,
+      },
+      select: { phone: true, telegramChatId: true, fullName: true },
+    });
+
+    if (users.length === 0) {
+      this.logger.warn(
+        `Telegram: raqamlar topildi lekin hech birida chatId yo'q (${phones.join(', ')}). ` +
+        `Hodimlar sahifasidan ularning Telegram Chat ID'sini kiriting.`
+      );
       return false;
     }
 
     const results = await Promise.all(
-      targets.map(chatId => this.sendTelegramMessage(token, chatId, text))
+      users.map(u => this.sendTelegramMessage(token, u.telegramChatId!, text))
     );
     return results.some(r => r);
   }
@@ -57,10 +75,26 @@ export class TelegramService {
     } catch (error) {
       const errData = error?.response?.data;
       this.logger.error(
-        `Failed to send to chatId="${chatId}": ${error?.message}${
-          errData ? ` | Telegram: ${JSON.stringify(errData)}` : ''
-        }`,
+        `Telegram xabar yuborishda xato (chatId=${chatId}): ${error?.message}` +
+        (errData ? ` | ${JSON.stringify(errData)}` : ''),
       );
+      return false;
+    }
+  }
+
+  async testConnection(botToken: string, chatId: string, name = ''): Promise<boolean> {
+    return this.sendTelegramMessage(
+      botToken,
+      chatId,
+      `✅ <b>Hippo Support</b> — Test xabar${name ? ` (${name})` : ''} muvaffaqiyatli!`,
+    );
+  }
+
+  async validateToken(botToken: string): Promise<boolean> {
+    try {
+      const res = await axios.get(`https://api.telegram.org/bot${botToken}/getMe`);
+      return res.data?.ok === true;
+    } catch {
       return false;
     }
   }
@@ -75,14 +109,13 @@ export class TelegramService {
       hour: '2-digit',
       minute: '2-digit',
     });
-    const text =
+    return this.sendMessage(
       `🚨 <b>INCIDENT ALERT</b>\n` +
-      `Service: <b>${incident.serviceName}</b>\n` +
+      `Servis: <b>${incident.serviceName}</b>\n` +
       `Status: <b>Offline</b>\n` +
-      `Severity: <b>${incident.severity}</b>\n` +
-      `Started at: <b>${time}</b>\n` +
-      `Impact: Users cannot access the system`;
-    return this.sendMessage(text);
+      `Muhimlik: <b>${incident.severity}</b>\n` +
+      `Vaqt: <b>${time}</b>`
+    );
   }
 
   async sendIncidentResolved(incident: {
@@ -91,29 +124,12 @@ export class TelegramService {
     durationMinutes?: number;
     rootCause?: string;
   }) {
-    const text =
+    return this.sendMessage(
       `✅ <b>INCIDENT RESOLVED</b>\n` +
-      `Service: <b>${incident.serviceName}</b>\n` +
-      `Duration: <b>${incident.durationMinutes ?? '?'} minutes</b>\n` +
-      `Root cause: ${incident.rootCause || 'Under investigation'}\n` +
-      `Status: <b>Resolved</b>`;
-    return this.sendMessage(text);
-  }
-
-  async testConnection(botToken: string, chatId: string): Promise<boolean> {
-    return this.sendTelegramMessage(
-      botToken,
-      chatId,
-      '✅ <b>Hippo Support</b> — Telegram ulanish tekshirildi!',
+      `Servis: <b>${incident.serviceName}</b>\n` +
+      `Davomiyligi: <b>${incident.durationMinutes ?? '?'} daqiqa</b>\n` +
+      `Sabab: ${incident.rootCause || 'Tekshirilmoqda'}\n` +
+      `Status: <b>Hal qilindi</b>`
     );
-  }
-
-  async validateToken(botToken: string): Promise<boolean> {
-    try {
-      const res = await axios.get(`https://api.telegram.org/bot${botToken}/getMe`);
-      return res.data?.ok === true;
-    } catch {
-      return false;
-    }
   }
 }

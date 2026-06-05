@@ -45,7 +45,7 @@ async function main() {
   await prisma.telegramSetting.create({
     data: {
       botToken: '',
-      chatId: '',
+      phones: '',
       isActive: false,
     },
   });

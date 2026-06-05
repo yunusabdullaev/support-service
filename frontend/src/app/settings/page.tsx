@@ -130,12 +130,12 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const qc = useQueryClient();
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [form, setForm] = useState({ botToken: '', chatId: '', isActive: false });
-  const [recipients, setRecipients] = useState<string[]>([]);
-  const [newRecipient, setNewRecipient] = useState('');
 
-  // Only run this query for ADMIN users to avoid 403/Forbidden errors on backend
+  const [botToken, setBotToken] = useState('');
+  const [phones, setPhones] = useState<string[]>([]);
+  const [newPhone, setNewPhone] = useState('');
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
   const isAdmin = user?.role === 'ADMIN';
 
   const { data: settings, isLoading } = useQuery({
@@ -143,6 +143,15 @@ export default function SettingsPage() {
     queryFn: () => api.get('/settings/telegram').then(r => r.data),
     enabled: isAdmin,
   });
+
+  React.useEffect(() => {
+    if (settings) {
+      if (settings.botToken) setBotToken(settings.botToken);
+      if (settings.phones) {
+        setPhones(settings.phones.split(',').map((p: string) => p.trim()).filter(Boolean));
+      }
+    }
+  }, [settings]);
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => api.patch('/settings/telegram', data),
@@ -152,41 +161,30 @@ export default function SettingsPage() {
   const testMutation = useMutation({
     mutationFn: () => api.post('/settings/telegram/test'),
     onSuccess: (r) => setTestResult(r.data),
-    onError: () => setTestResult({ success: false, message: 'Connection failed' }),
+    onError: () => setTestResult({ success: false, message: '❌ Ulanish xatosi' }),
   });
 
-  const displaySettings = settings || {};
-  const displayToken = form.botToken || displaySettings.botToken || '';
-  const displayChatId = form.chatId || displaySettings.chatId || '';
-  const displayActive = form.isActive ?? displaySettings.isActive ?? false;
-
-  // Sync recipients from server (stored as comma-separated string)
-  React.useEffect(() => {
-    if (settings?.recipients) {
-      const list = settings.recipients.split(',').map((r: string) => r.trim()).filter(Boolean);
-      setRecipients(list);
-    }
-  }, [settings]);
-
-  const addRecipient = () => {
-    const val = newRecipient.trim();
-    if (val && !recipients.includes(val)) {
-      setRecipients(r => [...r, val]);
-    }
-    setNewRecipient('');
+  const formatPhone = (val: string) => {
+    const d = val.replace(/\D/g, '').slice(0, 12);
+    if (d.length <= 3) return d;
+    if (d.length <= 5) return `${d.slice(0,3)} ${d.slice(3)}`;
+    if (d.length <= 8) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5)}`;
+    if (d.length <= 10) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8)}`;
+    return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}`;
   };
 
-  const removeRecipient = (idx: number) => {
-    setRecipients(r => r.filter((_, i) => i !== idx));
+  const addPhone = () => {
+    const val = newPhone.replace(/\D/g, '');
+    if (val.length >= 9 && !phones.includes(val)) {
+      setPhones(p => [...p, val]);
+    }
+    setNewPhone('');
   };
+
+  const removePhone = (idx: number) => setPhones(p => p.filter((_, i) => i !== idx));
 
   const handleSave = () => {
-    updateMutation.mutate({
-      botToken: displayToken,
-      chatId: displayChatId,
-      isActive: displayActive,
-      recipients: recipients.join(','),  // save as comma-separated string
-    });
+    updateMutation.mutate({ botToken: botToken.trim(), phones: phones.join(','), isActive: true });
   };
 
   return (
@@ -275,13 +273,14 @@ export default function SettingsPage() {
           {isAdmin && (
             <div className="space-y-6">
               <div className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-6">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Bot className="w-5 h-5 text-blue-400" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-white">{t('telegram_notifications')}</h2>
-                    <p className="text-xs text-slate-500">{t('telegram_subtitle')}</p>
+                    <h2 className="text-sm font-semibold text-white">Telegram xabarnomalar</h2>
+                    <p className="text-xs text-slate-500">Bot orqali hodimlarni xabardor qilish</p>
                   </div>
                 </div>
 
@@ -291,111 +290,91 @@ export default function SettingsPage() {
                     <div className="h-10 bg-slate-800 rounded-lg" />
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
+
+                    {/* Bot Token */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('bot_token')}</label>
-                      <input type="password" value={displayToken} onChange={e => setForm(f => ({...f, botToken: e.target.value}))}
-                        placeholder="1234567890:AAAA..."
-                        className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                        {t('chat_id')}
-                        <span className="ml-1.5 text-xs font-normal text-slate-500">(ixtiyoriy)</span>
-                      </label>
-                      <input type="text" value={displayChatId} onChange={e => setForm(f => ({...f, chatId: e.target.value}))}
-                        placeholder="-100123456789"
-                        className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono" />
-                      {displayChatId && !/^-?\d+$/.test(displayChatId.trim()) ? (
-                        <p className="text-xs text-red-400 mt-1">⚠️ Chat ID faqat raqamdan iborat bo'lishi kerak! (masalan: -100123456789). URL yoki telefon raqam emas.</p>
-                      ) : (
-                        <p className="text-xs text-slate-500 mt-1">Guruh chat ID manfiy raqam bilan boshlanadi: -100...</p>
-                      )}
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">Bot Token</label>
+                      <input
+                        type="password"
+                        value={botToken}
+                        onChange={e => setBotToken(e.target.value)}
+                        placeholder="1234567890:AAHh..."
+                        className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">@BotFather dan olingan token</p>
                     </div>
 
-                    {/* Recipients list */}
+                    <div className="border-t border-slate-800" />
+
+                    {/* Phone numbers */}
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                        Xabar oladiganlar
-                        <span className="ml-1.5 text-xs font-normal text-slate-500">(Telegram Chat ID)</span>
+                        Telefon raqamlar
+                        <span className="ml-1.5 text-xs font-normal text-slate-500">(xabar oladiganlar)</span>
                       </label>
 
-                      {/* Add new */}
                       <div className="flex gap-2 mb-2">
                         <input
-                          type="text"
-                          value={newRecipient}
-                          onChange={e => setNewRecipient(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addRecipient())}
-                          placeholder="123456789"
-                          className="flex-1 px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                          type="tel"
+                          value={newPhone}
+                          onChange={e => setNewPhone(formatPhone(e.target.value))}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addPhone())}
+                          placeholder="998 90 123 45 67"
+                          className="flex-1 px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono tracking-wider"
                         />
                         <button
                           type="button"
-                          onClick={addRecipient}
-                          disabled={!newRecipient.trim()}
-                          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-1"
+                          onClick={addPhone}
+                          disabled={newPhone.replace(/\D/g, '').length < 9}
+                          className="px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {/* List */}
-                      {recipients.length === 0 ? (
-                        <p className="text-xs text-slate-600 italic py-2">Hali nomer qo'shilmagan</p>
+                      {phones.length === 0 ? (
+                        <p className="text-xs text-slate-600 italic py-1.5">Hali raqam qo'shilmagan</p>
                       ) : (
                         <div className="space-y-1.5">
-                          {recipients.map((r, i) => (
+                          {phones.map((p, i) => (
                             <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg">
-                              <span className="text-sm text-slate-300 font-mono">{r}</span>
-                              <button
-                                type="button"
-                                onClick={() => removeRecipient(i)}
-                                className="p-0.5 text-slate-500 hover:text-red-400 transition-colors"
-                              >
+                              <span className="text-sm text-slate-200 font-mono">+{p}</span>
+                              <button type="button" onClick={() => removePhone(i)} className="p-0.5 text-slate-500 hover:text-red-400 transition-colors">
                                 <XIcon className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           ))}
                         </div>
                       )}
-                      <div className="mt-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                        <p className="text-xs text-amber-400 font-medium">📌 Chat ID qanday topiladi?</p>
-                        <p className="text-xs text-amber-400/80 mt-0.5">1. Telegram'da @userinfobot ga /start yuboring</p>
-                        <p className="text-xs text-amber-400/80">2. Bot sizning Chat ID'ingizni ko'rsatadi (faqat raqam)</p>
-                        <p className="text-xs text-amber-400/80">3. Guruh uchun: @RawDataBot ni guruhga qo'shing</p>
-                        <p className="text-xs text-red-400 mt-1">❌ https://t.me/... havolalar va +998... raqamlar emas!</p>
+
+                      <div className="mt-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-lg">
+                        <p className="text-xs text-slate-400 font-medium mb-1">💡 Qanday ishlaydi?</p>
+                        <p className="text-xs text-slate-500">1. Bu raqam egasi Hodimlar sahifasida Telegram Chat ID ni biriktiradi</p>
+                        <p className="text-xs text-slate-500">2. Yangi voqea yaratilganda bot shu kishilarga xabar yuboradi</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between py-3 border-t border-slate-800">
-                      <div>
-                        <p className="text-sm font-medium text-slate-300">{t('enable_notifications')}</p>
-                        <p className="text-xs text-slate-500">{t('enable_notifications_hint')}</p>
-                      </div>
-                      <button type="button" onClick={() => setForm(f => ({...f, isActive: !displayActive}))}
-                        className={`relative w-11 h-6 rounded-full transition-colors ${displayActive ? 'bg-indigo-600' : 'bg-slate-700'}`}>
-                        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${displayActive ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-
+                    {/* Test result */}
                     {testResult && (
-                      <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${testResult.success ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
-                        {testResult.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                        {testResult.message}
+                      <div className={`flex items-start gap-2 p-3 rounded-lg text-sm ${
+                        testResult.success
+                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                          : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                      }`}>
+                        {testResult.success ? <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />}
+                        <span>{testResult.message}</span>
                       </div>
                     )}
 
-                    <div className="flex gap-3 pt-2">
-                      <button type="button" onClick={() => testMutation.mutate()} disabled={testMutation.isPending}
-                        className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 text-sm font-medium rounded-lg transition-colors">
-                        {testMutation.isPending ? t('testing') : t('test_connection')}
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => testMutation.mutate()} disabled={testMutation.isPending || !botToken.trim()}
+                        className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-sm font-medium rounded-lg transition-colors">
+                        {testMutation.isPending ? 'Tekshirilmoqda...' : 'Ulanishni tekshirish'}
                       </button>
-                      <button type="button"
-                        onClick={handleSave}
-                        disabled={updateMutation.isPending}
+                      <button type="button" onClick={handleSave} disabled={updateMutation.isPending}
                         className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
-                        {updateMutation.isPending ? t('saving') : t('save')}
+                        {updateMutation.isPending ? 'Saqlanmoqda...' : 'Saqlash'}
                       </button>
                     </div>
                   </div>
