@@ -109,7 +109,7 @@ export class BugsService {
 
   async update(id: string, dto: UpdateBugDto, userId: string, userRole: string) {
     const bug = await this.findOne(id);
-    const isPrivileged = ['TEAM_LEADER'].includes(userRole);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(userRole);
     if (!isPrivileged && bug.createdById !== userId) {
       throw new ForbiddenException('You can only edit your own bugs');
     }
@@ -124,7 +124,7 @@ export class BugsService {
 
   async remove(id: string, userId: string, userRole: string) {
     const bug = await this.findOne(id);
-    const isPrivileged = ['TEAM_LEADER'].includes(userRole);
+    const isPrivileged = ['ADMIN', 'TEAM_LEADER'].includes(userRole);
     if (!isPrivileged && bug.createdById !== userId) {
       throw new ForbiddenException('You can only delete your own bugs');
     }
