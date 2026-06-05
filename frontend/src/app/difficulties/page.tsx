@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/auth';
 import {
   Plus, Frown, X, Package, User, Calendar,
   ChevronRight, CircleDot, CheckCircle2, Eye, Clock,
-  Edit3, Trash2, Save, AlertCircle, Check
+  Edit3, Trash2, Save, AlertCircle, Check, Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -62,7 +62,7 @@ export default function DifficultiesPage() {
     return new Date(item.updatedAt).getTime() > new Date(lastViewed).getTime() + 1000;
   };
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ title: '', productId: '', description: '' });
+  const [editForm, setEditForm] = useState({ title: '', productId: '', clientPhone: '', description: '' });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
   const [undoId, setUndoId] = useState<string | null>(null);
@@ -151,7 +151,7 @@ export default function DifficultiesPage() {
     setSelected(d);
     setIsEditing(false);
     setNewStatus('');
-    setEditForm({ title: d.title, productId: d.productId || '', description: d.description });
+    setEditForm({ title: d.title, productId: d.productId || '', clientPhone: d.clientPhone || '', description: d.description });
   };
 
   const statuses: DifficultyStatus[] = ['NEW', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'];
@@ -285,6 +285,11 @@ export default function DifficultiesPage() {
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <StatusBadge status={d.status} />
                       {d.product && <ProductBadge name={d.product.name} size="xs" />}
+                      {d.clientPhone && (
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded flex-shrink-0">
+                          📞 +{d.clientPhone}
+                        </span>
+                      )}
                     </div>
                     <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1 flex items-center gap-2 flex-wrap">
                       {d.title}
@@ -433,6 +438,19 @@ export default function DifficultiesPage() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-xs text-slate-400 mb-1">{t('client_phone') || 'Mijoz telefoni'}</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1.5 text-slate-500 text-sm font-mono">+</span>
+                      <input
+                        type="tel"
+                        value={editForm.clientPhone}
+                        onChange={e => setEditForm(f => ({ ...f, clientPhone: e.target.value.replace(/\D/g, '') }))}
+                        placeholder="998901234567"
+                        className="w-full pl-6 pr-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
                     <label className="block text-xs text-slate-400 mb-1">{t('description')} *</label>
                     <textarea
                       value={editForm.description}
@@ -446,7 +464,7 @@ export default function DifficultiesPage() {
                       {t('cancel')}
                     </button>
                     <button
-                      onClick={() => updateMutation.mutate({ id: selected.id, data: { title: editForm.title, productId: editForm.productId || null, description: editForm.description } })}
+                      onClick={() => updateMutation.mutate({ id: selected.id, data: { title: editForm.title, productId: editForm.productId || null, clientPhone: editForm.clientPhone || null, description: editForm.description } })}
                       disabled={updateMutation.isPending}
                       className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
@@ -459,6 +477,14 @@ export default function DifficultiesPage() {
                   {/* Description */}
                   <div className="bg-slate-800/50 rounded-xl p-4 mb-5">
                     <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{selected.description}</p>
+                    {selected.clientPhone && (
+                      <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center gap-2 text-xs">
+                        <span className="text-slate-500">{t('client_phone') || 'Mijoz telefoni'}:</span>
+                        <a href={`tel:+${selected.clientPhone}`} className="font-mono text-emerald-400 hover:underline flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5" /> +{selected.clientPhone}
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {/* Meta info */}

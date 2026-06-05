@@ -176,6 +176,7 @@ export interface Difficulty {
   product?: { id: string; name: string };
   productId?: string;
   description: string;
+  clientPhone?: string;
   status: DifficultyStatus;
   reportedByCount: number;
   createdById: string;

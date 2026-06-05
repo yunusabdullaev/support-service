@@ -367,6 +367,7 @@ model Difficulty {
   id               String           @id @default(cuid())
   title            String
   productId        String?
+  clientPhone      String?
   description      String           @db.Text
   status           DifficultyStatus @default(NEW)
   reportedByCount  Int              @default(1)

@@ -5,12 +5,14 @@ import { DifficultyStatus } from '@prisma/client';
 export class CreateDifficultyDto {
   title: string;
   productId?: string;
+  clientPhone?: string;
   description: string;
 }
 
 export class UpdateDifficultyDto {
   title?: string;
   productId?: string;
+  clientPhone?: string;
   description?: string;
   status?: DifficultyStatus;
 }
@@ -58,6 +60,7 @@ export class DifficultiesService {
         title: dto.title,
         description: dto.description,
         ...(dto.productId && { productId: dto.productId }),
+        clientPhone: dto.clientPhone || null,
         createdById,
       },
       include: {
@@ -80,6 +83,7 @@ export class DifficultiesService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.status !== undefined && { status: dto.status }),
         productId: dto.productId === '' ? null : dto.productId ?? undefined,
+        ...(dto.clientPhone !== undefined && { clientPhone: dto.clientPhone === '' ? null : dto.clientPhone }),
       },
     });
   }
