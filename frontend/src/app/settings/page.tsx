@@ -11,6 +11,7 @@ import {
   Bot, CheckCircle2, AlertCircle, Settings2,
   Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon
 } from 'lucide-react';
+import { ProductSection } from '@/components/ProductSection';
 
 function ChangePasswordForm() {
   const { t } = useI18n();
@@ -397,6 +398,11 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+
+        {/* Product Analytics — full width, visible to ADMIN/DEVELOPER/TEAM_LEADER */}
+        {(user?.role === 'ADMIN' || user?.role === 'DEVELOPER' || user?.role === 'TEAM_LEADER') && (
+          <ProductSection />
+        )}
       </div>
     </AppLayout>
   );
