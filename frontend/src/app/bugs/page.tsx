@@ -96,6 +96,7 @@ export default function BugsPage() {
       if (toDate) params.set('to', toDate);
       return api.get(`/bugs?${params}`).then(r => r.data);
     },
+    refetchInterval: 5000,
   });
 
   const filtered = bugs.filter(b => !search || b.title.toLowerCase().includes(search.toLowerCase()));

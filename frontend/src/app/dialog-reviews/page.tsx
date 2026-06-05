@@ -34,6 +34,7 @@ export default function DialogReviewsPage() {
       const params = operatorFilter ? `?operatorId=${operatorFilter}` : '';
       return api.get(`/dialog-reviews${params}`).then(r => r.data);
     },
+    refetchInterval: 5000,
   });
 
   const { data: users = [] } = useQuery<User[]>({

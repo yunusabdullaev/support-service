@@ -67,6 +67,7 @@ export default function ImprovementsPage() {
       if (toDate) params.set('to', toDate);
       return api.get(`/improvements?${params.toString()}`).then(r => r.data);
     },
+    refetchInterval: 5000,
   });
 
   const upvoteMutation = useMutation({

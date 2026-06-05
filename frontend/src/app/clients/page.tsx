@@ -59,6 +59,7 @@ export default function ClientsPage() {
       if (toDate) params.set('to', toDate);
       return api.get(`/clients?${params.toString()}`).then(r => r.data);
     },
+    refetchInterval: 5000,
   });
 
   const deleteMutation = useMutation({

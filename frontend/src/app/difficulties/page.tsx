@@ -66,6 +66,7 @@ export default function DifficultiesPage() {
       if (toDate) params.set('to', toDate);
       return api.get(`/difficulties?${params.toString()}`).then(r => r.data);
     },
+    refetchInterval: 5000,
   });
 
   const { data: products = [] } = useQuery<Product[]>({

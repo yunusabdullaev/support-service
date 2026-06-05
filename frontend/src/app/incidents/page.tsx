@@ -19,7 +19,7 @@ export default function IncidentsPage() {
   const { data: incidents = [], isLoading } = useQuery<Incident[]>({
     queryKey: ['incidents'],
     queryFn: () => api.get('/incidents').then(r => r.data),
-    refetchInterval: 60000,
+    refetchInterval: 5000,
   });
 
   const open = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'CLOSED');
