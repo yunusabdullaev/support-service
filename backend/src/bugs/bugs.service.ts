@@ -152,31 +152,46 @@ export class BugsService {
 
   async addComment(bugId: string, userId: string, dto: CreateCommentDto) {
     await this.findOne(bugId);
-    return this.prisma.bugComment.create({
+    const comment = await this.prisma.bugComment.create({
       data: { bugId, userId, comment: dto.comment },
       include: { user: { select: { id: true, fullName: true, role: true } } },
     });
+    await this.prisma.bug.update({
+      where: { id: bugId },
+      data: { updatedAt: new Date() },
+    });
+    return comment;
   }
 
   async updateComment(commentId: string, userId: string, dto: CreateCommentDto) {
     const c = await this.prisma.bugComment.findUnique({ where: { id: commentId } });
     if (!c) throw new Error('Comment not found');
-    return this.prisma.bugComment.update({
+    const comment = await this.prisma.bugComment.update({
       where: { id: commentId },
       data: { comment: dto.comment },
       include: { user: { select: { id: true, fullName: true, role: true } } },
     });
+    await this.prisma.bug.update({
+      where: { id: c.bugId },
+      data: { updatedAt: new Date() },
+    });
+    return comment;
   }
 
   async deleteComment(commentId: string, userId: string) {
     const c = await this.prisma.bugComment.findUnique({ where: { id: commentId } });
     if (!c) throw new Error('Comment not found');
-    return this.prisma.bugComment.delete({ where: { id: commentId } });
+    const deleted = await this.prisma.bugComment.delete({ where: { id: commentId } });
+    await this.prisma.bug.update({
+      where: { id: c.bugId },
+      data: { updatedAt: new Date() },
+    });
+    return deleted;
   }
 
   async addAttachment(bugId: string, userId: string, file: any) {
     await this.findOne(bugId);
-    return this.prisma.bugAttachment.create({
+    const attachment = await this.prisma.bugAttachment.create({
       data: {
         bugId,
         userId,
@@ -186,6 +201,11 @@ export class BugsService {
       },
       include: { user: { select: { id: true, fullName: true } } },
     });
+    await this.prisma.bug.update({
+      where: { id: bugId },
+      data: { updatedAt: new Date() },
+    });
+    return attachment;
   }
 
   async deleteAttachment(attachmentId: string) {
@@ -196,7 +216,12 @@ export class BugsService {
     const path = require('path');
     const filePath = path.join(process.cwd(), 'uploads', path.basename(a.fileUrl));
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    return this.prisma.bugAttachment.delete({ where: { id: attachmentId } });
+    const deleted = await this.prisma.bugAttachment.delete({ where: { id: attachmentId } });
+    await this.prisma.bug.update({
+      where: { id: a.bugId },
+      data: { updatedAt: new Date() },
+    });
+    return deleted;
   }
 
   getStats() {

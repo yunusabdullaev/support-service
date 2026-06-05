@@ -109,6 +109,7 @@ export interface ImprovementRequest {
   createdBy?: { id: string; fullName: string };
   upvotes?: ImprovementUpvote[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ServiceMonitor {

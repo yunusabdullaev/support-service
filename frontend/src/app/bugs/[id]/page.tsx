@@ -56,6 +56,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
     queryFn: () => api.get(`/bugs/${id}`).then(r => r.data),
   });
 
+  useEffect(() => {
+    if (bug) {
+      localStorage.setItem(`viewed_bug_${bug.id}`, new Date().toISOString());
+    }
+  }, [bug]);
+
   const commentMutation = useMutation({
     mutationFn: () => api.post(`/bugs/${id}/comments`, { comment }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bug', id] }); setComment(''); },

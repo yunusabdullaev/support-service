@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -32,6 +32,22 @@ export default function ImprovementsPage() {
   const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
   const [upvotePhone, setUpvotePhone] = useState('');
   const [undoUpvoteId, setUndoUpvoteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (detailItem) {
+      localStorage.setItem(`viewed_improvement_${detailItem.id}`, new Date().toISOString());
+    }
+  }, [detailItem]);
+
+  const isImprovementUpdated = (item: ImprovementRequest) => {
+    if (typeof window === 'undefined') return false;
+    const lastViewed = localStorage.getItem(`viewed_improvement_${item.id}`);
+    if (!lastViewed) {
+      const ageMs = Date.now() - new Date(item.createdAt).getTime();
+      return ageMs < 48 * 60 * 60 * 1000;
+    }
+    return new Date(item.updatedAt).getTime() > new Date(lastViewed).getTime() + 1000;
+  };
 
   const canViewDetail = ['ADMIN', 'TEAM_LEADER', 'DEVELOPER'].includes(user?.role || '');
 
@@ -218,7 +234,15 @@ export default function ImprovementsPage() {
                         <StatusBadge status={imp.status} />
                         {imp.product && <ProductBadge name={imp.product.name} />}
                       </div>
-                      <h3 className="text-sm font-semibold text-white mb-1">{imp.title}</h3>
+                      <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2 flex-wrap">
+                        {imp.title}
+                        {isImprovementUpdated(imp) && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            {t('updated_at')}
+                          </span>
+                        )}
+                      </h3>
                       <p className="text-sm text-slate-400 line-clamp-2">{imp.description}</p>
                       {imp.businessValue && (
                         <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">

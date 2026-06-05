@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -32,6 +32,16 @@ export default function BugsPage() {
   const [editBug, setEditBug] = useState<Bug | null>(null);
 
   const qc = useQueryClient();
+
+  const isBugUpdated = (bug: Bug) => {
+    if (typeof window === 'undefined') return false;
+    const lastViewed = localStorage.getItem(`viewed_bug_${bug.id}`);
+    if (!lastViewed) {
+      const ageMs = Date.now() - new Date(bug.createdAt).getTime();
+      return ageMs < 48 * 60 * 60 * 1000;
+    }
+    return new Date(bug.updatedAt).getTime() > new Date(lastViewed).getTime() + 1000;
+  };
 
   const canEditItem = (createdById?: string) =>
     user?.role === 'TEAM_LEADER' || user?.id === createdById;
@@ -181,7 +191,15 @@ export default function BugsPage() {
                     <tr key={bug.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group">
                       <td className="px-5 py-4">
                         <Link href={`/bugs/${bug.id}`} className="group/link block">
-                          <p className="text-sm font-medium text-slate-200 group-hover/link:text-indigo-400 transition-colors">{bug.title}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium text-slate-200 group-hover/link:text-indigo-400 transition-colors">{bug.title}</p>
+                            {isBugUpdated(bug) && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                {t('updated_at')}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex flex-wrap items-start gap-x-2 gap-y-0.5 mt-0.5">
                             {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded flex-shrink-0">{bug.module}</span>}
                             {bug.clientPhone && <span className="text-[10px] font-mono text-emerald-400/80 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded flex-shrink-0">+{bug.clientPhone}</span>}
