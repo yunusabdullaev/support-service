@@ -17,12 +17,19 @@ async function bootstrap() {
       const sanitizedOrigin = origin ? origin.replace(/\/$/, '') : '';
       const sanitizedFrontend = frontendUrl ? frontendUrl.replace(/\/$/, '') : '';
 
-      // Allow requests from any localhost port, or no origin (curl, Postman, etc.), or the configured FRONTEND_URL
+      const allowedOrigins = [
+        'https://hippo-support.onrender.com',
+        'https://hippo-support-frontend.onrender.com',
+        'http://127.0.0.1:3002',
+      ];
+      if (sanitizedFrontend && !allowedOrigins.includes(sanitizedFrontend)) {
+        allowedOrigins.push(sanitizedFrontend);
+      }
+
       if (
         !origin ||
         /^http:\/\/localhost:\d+$/.test(origin) ||
-        origin === 'http://127.0.0.1:3002' ||
-        (sanitizedFrontend && sanitizedOrigin === sanitizedFrontend)
+        allowedOrigins.includes(sanitizedOrigin)
       ) {
         callback(null, true);
       } else {
