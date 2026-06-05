@@ -72,6 +72,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bug', id] }); },
   });
 
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: (attachmentId: string) => api.delete(`/bugs/${id}/attachments/${attachmentId}`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bug', id] }); },
+  });
+
   const statusMutation = useMutation({
     mutationFn: (status: BugStatus) => api.patch(`/bugs/${id}`, { status }),
     onSuccess: () => {
@@ -102,6 +107,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
 
   const canChangeStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canEditComment = (authorId: string) => user?.id === authorId || user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
+  const canDeleteAttachment = (uploaderId?: string) => !uploaderId || user?.id === uploaderId || user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
 
   if (isLoading) return (
     <AppLayout>
@@ -376,21 +382,32 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {bug.attachments.map(a => (
-                    <button
-                      key={a.id}
-                      onClick={() => setLightboxSrc(`${API_URL}${a.fileUrl}`)}
-                      className="relative group aspect-video rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors"
-                    >
-                      <img
-                        src={`${API_URL}${a.fileUrl}`}
-                        alt={a.fileName}
-                        className="w-full h-full object-cover"
-                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </button>
+                    <div key={a.id} className="relative group aspect-video rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors">
+                      <button
+                        onClick={() => setLightboxSrc(`${API_URL}${a.fileUrl}`)}
+                        className="absolute inset-0 w-full h-full"
+                      >
+                        <img
+                          src={`${API_URL}${a.fileUrl}`}
+                          alt={a.fileName}
+                          className="w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                          <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
+                      {canDeleteAttachment(a.userId) && (
+                        <button
+                          onClick={e => { e.stopPropagation(); deleteAttachmentMutation.mutate(a.id); }}
+                          disabled={deleteAttachmentMutation.isPending}
+                          className="absolute top-1.5 right-1.5 z-10 p-1.5 bg-red-600/90 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                          title={t('delete')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

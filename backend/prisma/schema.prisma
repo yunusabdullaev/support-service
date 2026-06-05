@@ -113,6 +113,7 @@ model User {
   createdBugs        Bug[]            @relation("BugCreatedBy")
   assignedBugs       Bug[]            @relation("BugAssignedTo")
   bugComments        BugComment[]
+  bugAttachments     BugAttachment[]
   dialogReviews      DialogReview[]   @relation("DialogReviewedBy")
   operatorDialogs    DialogReview[]   @relation("DialogOperator")
   createdImprovements ImprovementRequest[] @relation("ImprovementCreatedBy")
@@ -201,12 +202,14 @@ model Bug {
 model BugAttachment {
   id        String   @id @default(cuid())
   bugId     String
+  userId    String?
   fileUrl   String
   fileName  String
   fileType  String
   createdAt DateTime @default(now())
 
-  bug Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  bug  Bug   @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
 
   @@map("bug_attachments")
 }

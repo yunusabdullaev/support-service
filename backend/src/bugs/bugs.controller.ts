@@ -100,7 +100,19 @@ export class BugsController {
 
   @Post(':id/attachments')
   @UseInterceptors(FileInterceptor('file'))
-  addAttachment(@Param('id') id: string, @UploadedFile() file: any) {
-    return this.bugsService.addAttachment(id, file);
+  addAttachment(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+    @CurrentUser() user: any,
+  ) {
+    return this.bugsService.addAttachment(id, user.id, file);
+  }
+
+  @Delete(':id/attachments/:attachmentId')
+  deleteAttachment(
+    @Param('attachmentId') attachmentId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.bugsService.deleteAttachment(attachmentId);
   }
 }

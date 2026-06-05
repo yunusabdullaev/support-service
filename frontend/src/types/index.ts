@@ -57,6 +57,8 @@ export interface BugAttachment {
   fileUrl: string;
   fileName: string;
   fileType: string;
+  userId?: string;
+  user?: { id: string; fullName: string };
   createdAt: string;
 }
 

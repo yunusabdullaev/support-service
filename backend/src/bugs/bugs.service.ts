@@ -174,16 +174,29 @@ export class BugsService {
     return this.prisma.bugComment.delete({ where: { id: commentId } });
   }
 
-  async addAttachment(bugId: string, file: any) {
+  async addAttachment(bugId: string, userId: string, file: any) {
     await this.findOne(bugId);
     return this.prisma.bugAttachment.create({
       data: {
         bugId,
+        userId,
         fileUrl: `/uploads/${file.filename}`,
         fileName: file.originalname,
         fileType: file.mimetype,
       },
+      include: { user: { select: { id: true, fullName: true } } },
     });
+  }
+
+  async deleteAttachment(attachmentId: string) {
+    const a = await this.prisma.bugAttachment.findUnique({ where: { id: attachmentId } });
+    if (!a) throw new Error('Attachment not found');
+    // Delete file from disk if it exists
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'uploads', path.basename(a.fileUrl));
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    return this.prisma.bugAttachment.delete({ where: { id: attachmentId } });
   }
 
   getStats() {
