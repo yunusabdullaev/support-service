@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Difficulty, DifficultyStatus, Product } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
+import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
@@ -246,11 +247,7 @@ export default function DifficultiesPage() {
                   <button onClick={() => openDetail(d)} className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <StatusBadge status={d.status} />
-                      {d.product && (
-                        <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-800/80 px-2 py-0.5 rounded-md">
-                          <Package className="w-3 h-3" />{d.product.name}
-                        </span>
-                      )}
+                      {d.product && <ProductBadge name={d.product.name} size="xs" />}
                     </div>
                     <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">{d.title}</h3>
                     <p className="text-xs text-slate-400 line-clamp-2">{d.description}</p>
@@ -340,11 +337,7 @@ export default function DifficultiesPage() {
                     <>
                       <div className="flex items-center gap-2 mb-2">
                         <StatusBadge status={selected.status} />
-                        {selected.product && (
-                          <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md">
-                            <Package className="w-3 h-3" />{selected.product.name}
-                          </span>
-                        )}
+                        {selected.product && <ProductBadge name={selected.product.name} />}
                       </div>
                       <h2 className="text-lg font-bold text-white leading-snug">{selected.title}</h2>
                     </>

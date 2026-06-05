@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Bug, BugStatus, User } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
+import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import { ArrowLeft, MessageSquare, Paperclip, Send, Edit2, CheckCircle2, ImagePlus, X, ZoomIn } from 'lucide-react';
 import Link from 'next/link';
@@ -80,7 +81,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
             <div className="flex items-center gap-3 flex-wrap mb-2">
               <PriorityBadge priority={bug.priority} />
               <StatusBadge status={bug.status} />
-              {bug.product && <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{bug.product.name}</span>}
+              {bug.product && <ProductBadge name={bug.product.name} />}
               {bug.module && <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{bug.module}</span>}
               {bug.clientPhone && (
                 <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">

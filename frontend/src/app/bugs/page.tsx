@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Bug, BugStatus, BugPriority, Product } from '@/types';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
+import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
@@ -211,7 +212,7 @@ export default function BugsPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-sm text-slate-400">{bug.product?.name}</td>
+                      <td className="px-5 py-4">{bug.product && <ProductBadge name={bug.product.name} />}</td>
                       <td className="px-5 py-4"><PriorityBadge priority={bug.priority} /></td>
                       <td className="px-5 py-4"><StatusBadge status={bug.status} /></td>
                       <td className="px-5 py-4">

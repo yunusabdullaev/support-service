@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { ImprovementRequest, ImprovementStatus, Product } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
+import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -214,11 +215,7 @@ export default function ImprovementsPage() {
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <StatusBadge status={imp.status} />
-                        {imp.product && (
-                          <span className="text-xs text-slate-500 bg-slate-800/80 px-2 py-0.5 rounded-md">
-                            {imp.product.name}
-                          </span>
-                        )}
+                        {imp.product && <ProductBadge name={imp.product.name} />}
                       </div>
                       <h3 className="text-sm font-semibold text-white mb-1">{imp.title}</h3>
                       <p className="text-sm text-slate-400 line-clamp-2">{imp.description}</p>
@@ -497,9 +494,7 @@ function DetailDrawer({ item, onClose, onEdit, onDelete, canEdit, canDelete }: {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <StatusBadge status={item.status} />
-                {item.product && (
-                  <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md">{item.product.name}</span>
-                )}
+                {item.product && <ProductBadge name={item.product.name} />}
               </div>
               <h2 className="text-base font-bold text-white leading-snug">{item.title}</h2>
             </div>
