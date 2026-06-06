@@ -22,6 +22,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { KeepAliveService } from './common/keep-alive.service';
 
 @Module({
   imports: [
@@ -56,6 +57,6 @@ import { AppService } from './app.service';
     DifficultiesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, KeepAliveService],
 })
 export class AppModule {}
