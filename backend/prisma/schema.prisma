@@ -168,6 +168,12 @@ model DialogReview {
   product    Product @relation(fields: [productId], references: [id])
   reviewedBy User?   @relation("DialogReviewedBy", fields: [reviewedById], references: [id])
 
+  @@index([operatorId])
+  @@index([productId])
+  @@index([reviewedById])
+  @@index([status])
+  @@index([createdAt])
+
   @@map("dialog_reviews")
 }
 
@@ -196,6 +202,12 @@ model Bug {
   attachments BugAttachment[]
   comments    BugComment[]
 
+  @@index([productId])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+
   @@map("bugs")
 }
 
@@ -211,6 +223,9 @@ model BugAttachment {
   bug  Bug   @relation(fields: [bugId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id])
 
+  @@index([bugId])
+  @@index([userId])
+
   @@map("bug_attachments")
 }
 
@@ -223,6 +238,10 @@ model BugComment {
 
   bug  Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
+
+  @@index([bugId])
+  @@index([userId])
+  @@index([createdAt])
 
   @@map("bug_comments")
 }
@@ -245,6 +264,11 @@ model ImprovementRequest {
   createdBy User    @relation("ImprovementCreatedBy", fields: [createdById], references: [id])
   upvotes   ImprovementUpvote[]
 
+  @@index([productId])
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+
   @@map("improvement_requests")
 }
 
@@ -255,6 +279,8 @@ model ImprovementUpvote {
   createdAt     DateTime @default(now())
 
   improvement ImprovementRequest @relation(fields: [improvementId], references: [id], onDelete: Cascade)
+
+  @@index([improvementId])
 
   @@map("improvement_upvotes")
 }
@@ -278,6 +304,8 @@ model ServiceMonitor {
   logs      MonitorLog[]
   incidents Incident[]
 
+  @@index([productId])
+
   @@map("service_monitors")
 }
 
@@ -291,6 +319,9 @@ model MonitorLog {
   errorMessage    String?
 
   serviceMonitor ServiceMonitor @relation(fields: [serviceMonitorId], references: [id], onDelete: Cascade)
+
+  @@index([serviceMonitorId])
+  @@index([checkedAt])
 
   @@map("monitor_logs")
 }
@@ -313,6 +344,11 @@ model Incident {
   serviceMonitor  ServiceMonitor? @relation(fields: [serviceMonitorId], references: [id])
   responsibleUser User?           @relation(fields: [responsibleUserId], references: [id])
 
+  @@index([serviceMonitorId])
+  @@index([responsibleUserId])
+  @@index([status])
+  @@index([createdAt])
+
   @@map("incidents")
 }
 
@@ -331,6 +367,13 @@ model KnowledgeArticle {
   product   Product? @relation(fields: [productId], references: [id])
   createdBy User     @relation("ArticleCreatedBy", fields: [createdById], references: [id])
   updatedBy User?    @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([productId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
 
   @@map("knowledge_articles")
 }
@@ -360,6 +403,8 @@ model Client {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([createdAt])
+
   @@map("clients")
 }
 
@@ -377,6 +422,11 @@ model Difficulty {
 
   product   Product? @relation(fields: [productId], references: [id])
   createdBy User     @relation("DifficultyCreatedBy", fields: [createdById], references: [id])
+
+  @@index([productId])
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
 
   @@map("difficulties")
 }
