@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 export class CreateProductDto {
@@ -13,8 +13,29 @@ export class UpdateProductDto {
 }
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
+
+  async onModuleInit() {
+    const products = [
+      { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi' },
+      { name: 'EDI', description: 'Elektron hujjat almashinuvi' },
+      { name: 'EDO', description: 'Elektron hujjat oqimi' },
+      { name: 'Hippo POS', description: 'Savdo nuqtasi va kassa boshqaruvi tizimi (Point of Sale)' },
+    ];
+
+    for (const prod of products) {
+      try {
+        await this.prisma.product.upsert({
+          where: { name: prod.name },
+          update: { description: prod.description },
+          create: { name: prod.name, description: prod.description, isActive: true },
+        });
+      } catch (error) {
+        console.error(`Failed to upsert product ${prod.name}:`, error);
+      }
+    }
+  }
 
   findAll() {
     return this.prisma.product.findMany({ orderBy: { name: 'asc' } });
