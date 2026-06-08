@@ -99,6 +99,7 @@ export interface ImprovementUpvote {
 export interface ImprovementRequest {
   id: string;
   title: string;
+  productId: string;
   product?: Product;
   description: string;
   requestedByClientsCount: number;

@@ -442,6 +442,7 @@ function EditImprovementModal({ item, onClose, onSave, isPending }: {
 
   const [form, setForm] = useState({
     title: item.title,
+    productId: item.productId || item.product?.id || '',
     description: item.description,
     source: item.source || '',
     clientPhone: item.clientPhone || '',
@@ -462,6 +463,16 @@ function EditImprovementModal({ item, onClose, onSave, isPending }: {
             <label className="block text-xs text-slate-400 mb-1">{t('improvement_title')} *</label>
             <input value={form.title} onChange={e => set('title', e.target.value)}
               className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">{t('product') || 'Mahsulot'} *</label>
+            <select value={form.productId} onChange={e => set('productId', e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="" disabled>{t('select_product') || 'Mahsulot tanlang'}</option>
+              {products.filter(p => p.isActive).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs text-slate-400 mb-1">{t('status')}</label>

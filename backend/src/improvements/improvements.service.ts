@@ -15,6 +15,7 @@ export class CreateImprovementDto {
 
 export class UpdateImprovementDto {
   title?: string;
+  productId?: string;
   description?: string;
   requestedByClientsCount?: number;
   source?: string;
