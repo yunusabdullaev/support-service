@@ -13,6 +13,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { Response } from 'express';
 import {
   ClientsService,
@@ -47,6 +48,23 @@ export class ClientsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateClientDto) {
     return this.service.update(id, dto);
+  }
+
+  @Post(':id/comments')
+  addComment(
+    @Param('id') id: string,
+    @Body('text') text: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.service.addComment(id, user.id, text);
+  }
+
+  @Delete(':id/comments/:commentId')
+  deleteComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.service.deleteComment(commentId, user.id);
   }
 
   @Get('export/excel')

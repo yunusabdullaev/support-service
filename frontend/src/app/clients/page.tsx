@@ -141,7 +141,7 @@ export default function ClientsPage() {
               <div key={client.id} className="glass-card p-5 hover:border-slate-600 transition-all duration-200">
                 <div className="flex items-start justify-between gap-3">
                   {/* Avatar + name */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Link href={`/clients/${client.id}`} className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
                     <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">
                       {client.fullName.charAt(0).toUpperCase()}
                     </div>
@@ -151,7 +151,7 @@ export default function ClientsPage() {
                         <p className="text-xs text-slate-400 truncate">{client.position}</p>
                       )}
                     </div>
-                  </div>
+                  </Link>
                   {/* Actions */}
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button

@@ -52,7 +52,25 @@ export class ClientsService {
   }
 
   async findOne(id: string) {
-    const client = await this.prisma.client.findUnique({ where: { id } });
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+      include: {
+        comments: {
+          include: {
+            createdBy: {
+              select: {
+                id: true,
+                fullName: true,
+                role: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
     if (!client) throw new NotFoundException('Client not found');
     return client;
   }
@@ -62,13 +80,53 @@ export class ClientsService {
   }
 
   async update(id: string, dto: UpdateClientDto) {
-    await this.findOne(id);
+    // We use a simpler findUnique check to avoid querying relation when updating
+    const client = await this.prisma.client.findUnique({ where: { id } });
+    if (!client) throw new NotFoundException('Client not found');
     return this.prisma.client.update({ where: { id }, data: dto });
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const client = await this.prisma.client.findUnique({ where: { id } });
+    if (!client) throw new NotFoundException('Client not found');
     return this.prisma.client.delete({ where: { id } });
+  }
+
+  async addComment(clientId: string, userId: string, text: string) {
+    const client = await this.prisma.client.findUnique({ where: { id: clientId } });
+    if (!client) throw new NotFoundException('Client not found');
+
+    return this.prisma.clientComment.create({
+      data: {
+        clientId,
+        createdById: userId,
+        text,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteComment(commentId: string, userId: string) {
+    const comment = await this.prisma.clientComment.findUnique({ where: { id: commentId } });
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    // Only creator or admin can delete comments (standard pattern)
+    // We can fetch the user to verify role, or just check createdById.
+    // Let's check if the user is the creator. Admins can delete too.
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (comment.createdById !== userId && user?.role !== 'ADMIN') {
+      throw new NotFoundException('Unauthorized to delete this comment');
+    }
+
+    return this.prisma.clientComment.delete({ where: { id: commentId } });
   }
 
   count() {

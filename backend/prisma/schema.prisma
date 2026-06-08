@@ -121,6 +121,7 @@ model User {
   createdArticles    KnowledgeArticle[] @relation("ArticleCreatedBy")
   updatedArticles    KnowledgeArticle[] @relation("ArticleUpdatedBy")
   difficulties       Difficulty[]       @relation("DifficultyCreatedBy")
+  clientComments     ClientComment[]
 
   @@map("users")
 }
@@ -404,9 +405,25 @@ model Client {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  comments    ClientComment[]
+
   @@index([createdAt])
 
   @@map("clients")
+}
+
+model ClientComment {
+  id          String   @id @default(cuid())
+  clientId    String
+  text        String   @db.Text
+  createdById String
+  createdAt   DateTime @default(now())
+
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([clientId])
+  @@map("client_comments")
 }
 
 model Difficulty {
