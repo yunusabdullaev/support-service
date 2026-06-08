@@ -392,18 +392,19 @@ model TelegramSetting {
 }
 
 model Client {
-  id          String   @id @default(cuid())
-  fullName    String
-  phone       String
-  direction   String?
-  position    String?
-  location    String?
-  branchCount Int      @default(1)
-  employeeCount Int    @default(0)
-  note        String?  @db.Text
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  fullName     String
+  phone        String
+  direction    String?
+  position     String?
+  location     String?
+  branchCount  Int      @default(1)
+  employeeCount Int     @default(0)
+  referredFrom String?
+  note         String?  @db.Text
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   comments    ClientComment[]
 

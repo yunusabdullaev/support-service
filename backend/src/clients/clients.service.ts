@@ -10,6 +10,7 @@ export class CreateClientDto {
   location?: string;
   branchCount?: number;
   employeeCount?: number;
+  referredFrom?: string;
   note?: string;
 }
 
@@ -21,6 +22,7 @@ export class UpdateClientDto {
   location?: string;
   branchCount?: number;
   employeeCount?: number;
+  referredFrom?: string;
   note?: string;
   isActive?: boolean;
 }
@@ -40,6 +42,7 @@ export class ClientsService {
                   { phone: { contains: search } },
                   { direction: { contains: search, mode: 'insensitive' } },
                   { location: { contains: search, mode: 'insensitive' } },
+                  { referredFrom: { contains: search, mode: 'insensitive' } },
                 ],
               }
             : {},
@@ -147,6 +150,7 @@ export class ClientsService {
       { header: 'Location', key: 'location', width: 20 },
       { header: 'Branches', key: 'branchCount', width: 12 },
       { header: 'Staff Count', key: 'employeeCount', width: 12 },
+      { header: 'Referred From', key: 'referredFrom', width: 20 },
       { header: 'Active', key: 'isActive', width: 12 },
       { header: 'Notes', key: 'note', width: 35 },
       { header: 'Created At', key: 'createdAt', width: 20 },
@@ -170,6 +174,7 @@ export class ClientsService {
         location: c.location || '—',
         branchCount: c.branchCount,
         employeeCount: c.employeeCount,
+        referredFrom: c.referredFrom || '—',
         isActive: c.isActive ? 'Yes' : 'No',
         note: c.note || '—',
         createdAt: new Date(c.createdAt).toLocaleDateString('ru-RU'),

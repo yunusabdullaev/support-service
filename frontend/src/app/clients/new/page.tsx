@@ -22,6 +22,7 @@ export default function NewClientPage() {
     location: '',
     branchCount: 1,
     employeeCount: 0,
+    referredFrom: '',
     note: '',
   });
   const [error, setError] = useState('');
@@ -33,6 +34,7 @@ export default function NewClientPage() {
       direction: form.direction || undefined,
       position: form.position || undefined,
       location: form.location || undefined,
+      referredFrom: form.referredFrom || undefined,
       note: form.note || undefined,
     }),
     onSuccess: () => {
@@ -147,6 +149,17 @@ export default function NewClientPage() {
                 className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               />
             </div>
+          </div>
+
+          {/* Referred From */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('client_referred_from')}</label>
+            <input
+              value={form.referredFrom}
+              onChange={e => set('referredFrom', e.target.value)}
+              placeholder={t('client_referred_from_placeholder')}
+              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
           </div>
 
           {/* Note */}

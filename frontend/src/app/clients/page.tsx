@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 import {
   Plus, Search, UserCheck, Phone, MapPin, Briefcase,
-  GitBranch, Building2, Edit3, Trash2, X, Save, AlertCircle, Download
+  GitBranch, Building2, Edit3, Trash2, X, Save, AlertCircle, Download, Megaphone
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -22,6 +22,7 @@ interface Client {
   location?: string;
   branchCount: number;
   employeeCount: number;
+  referredFrom?: string;
   note?: string;
   isActive: boolean;
   createdAt: string;
@@ -197,6 +198,12 @@ export default function ClientsPage() {
                     <UserCheck className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                     <span>{client.employeeCount} {t('employees')}</span>
                   </div>
+                  {client.referredFrom && (
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <Megaphone className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                      <span className="truncate">{client.referredFrom}</span>
+                    </div>
+                  )}
                 </div>
 
                 {client.note && (
@@ -268,6 +275,7 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
     location: client.location || '',
     branchCount: client.branchCount,
     employeeCount: client.employeeCount,
+    referredFrom: client.referredFrom || '',
     note: client.note || '',
   });
   const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }));
@@ -310,6 +318,10 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
             <div className="col-span-2">
               <label className="block text-xs text-slate-400 mb-1">{t('client_location')}</label>
               <input value={form.location} onChange={e => set('location', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-slate-400 mb-1">{t('client_referred_from')}</label>
+              <input value={form.referredFrom} onChange={e => set('referredFrom', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
             <div className="col-span-2">
               <label className="block text-xs text-slate-400 mb-1">{t('note')}</label>

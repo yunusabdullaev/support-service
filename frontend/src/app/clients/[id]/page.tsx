@@ -14,7 +14,8 @@ import {
   UserCheck,
   Send,
   Trash2,
-  MessageSquare
+  MessageSquare,
+  Megaphone
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -42,6 +43,7 @@ interface ClientDetail {
   location?: string;
   branchCount: number;
   employeeCount: number;
+  referredFrom?: string;
   note?: string;
   isActive: boolean;
   createdAt: string;
@@ -176,6 +178,16 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     <span className="text-slate-200 text-sm">{client.employeeCount}</span>
                   </div>
                 </div>
+
+                {client.referredFrom && (
+                  <div className="flex items-start gap-3">
+                    <Megaphone className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="block text-slate-500 text-[10px] uppercase font-bold tracking-wider">{t('client_referred_from')}</span>
+                      <span className="text-slate-200 text-sm">{client.referredFrom}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {client.note && (
