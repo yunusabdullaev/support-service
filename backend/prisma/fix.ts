@@ -48,19 +48,21 @@ async function main() {
   }
 
   // Ensure products exist
-  const prodCount = await prisma.product.count();
-  if (prodCount === 0) {
-    await prisma.product.createMany({
-      data: [
-        { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true },
-        { name: 'EDI', description: 'Elektron hujjat almashinuvi', isActive: true },
-        { name: 'EDO', description: 'Elektron hujjat oqimi', isActive: true },
-      ],
+  const products = [
+    { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi' },
+    { name: 'EDI', description: 'Elektron hujjat almashinuvi' },
+    { name: 'EDO', description: 'Elektron hujjat oqimi' },
+    { name: 'Hippo POS', description: 'Savdo nuqtasi va kassa boshqaruvi tizimi (Point of Sale)' },
+  ];
+
+  for (const prod of products) {
+    await prisma.product.upsert({
+      where: { name: prod.name },
+      update: { description: prod.description },
+      create: { name: prod.name, description: prod.description, isActive: true },
     });
-    console.log('✅ Products created');
-  } else {
-    console.log(`✅ Products already exist (${prodCount} ta)`);
   }
+  console.log('✅ Products synchronized');
 
   // Count all data for report
   const users = await prisma.user.count();

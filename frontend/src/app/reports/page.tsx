@@ -8,6 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { useProduct } from '@/lib/product';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -20,19 +21,23 @@ const chartTooltipStyle = {
 };
 
 export default function ReportsPage() {
+  const { selectedProductId } = useProduct();
+
+  const getParams = () => selectedProductId ? `?productId=${selectedProductId}` : '';
+
   const { data: bugReport = [] } = useQuery({
-    queryKey: ['reports-bugs'],
-    queryFn: () => api.get('/reports/bugs').then(r => r.data),
+    queryKey: ['reports-bugs', selectedProductId],
+    queryFn: () => api.get(`/reports/bugs${getParams()}`).then(r => r.data),
   });
 
   const { data: qualityReport = [] } = useQuery({
-    queryKey: ['reports-quality'],
-    queryFn: () => api.get('/reports/quality').then(r => r.data),
+    queryKey: ['reports-quality', selectedProductId],
+    queryFn: () => api.get(`/reports/quality${getParams()}`).then(r => r.data),
   });
 
   const { data: uptimeReport = [] } = useQuery({
-    queryKey: ['reports-uptime'],
-    queryFn: () => api.get('/reports/uptime').then(r => r.data),
+    queryKey: ['reports-uptime', selectedProductId],
+    queryFn: () => api.get(`/reports/uptime${getParams()}`).then(r => r.data),
   });
 
   // Compute bug stats by priority
@@ -65,6 +70,7 @@ export default function ReportsPage() {
     const token = localStorage.getItem('token');
     const url = new URLSearchParams();
     if (token) url.set('token', token);
+    if (selectedProductId) url.set('productId', selectedProductId);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     window.open(`${API_URL}/reports/export/excel?${url.toString()}`, '_blank');
   };
@@ -73,6 +79,7 @@ export default function ReportsPage() {
     const token = localStorage.getItem('token');
     const url = new URLSearchParams();
     if (token) url.set('token', token);
+    if (selectedProductId) url.set('productId', selectedProductId);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     window.open(`${API_URL}/reports/export/pdf?${url.toString()}`, '_blank');
   };

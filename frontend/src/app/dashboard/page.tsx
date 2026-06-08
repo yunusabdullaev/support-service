@@ -7,6 +7,7 @@ import { DashboardStats } from '@/types';
 import { ServiceStatusBadge } from '@/components/ui/Badge';
 import { formatDateTime } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import {
   Bug, AlertTriangle, Star, Activity, Server, Lightbulb, TrendingUp, Clock, Zap
 } from 'lucide-react';
@@ -48,16 +49,19 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend }: {
 
 export default function DashboardPage() {
   const { t } = useI18n();
+  const { selectedProductId } = useProduct();
+
+  const getParams = () => selectedProductId ? `?productId=${selectedProductId}` : '';
 
   const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => api.get('/dashboard/stats').then(r => r.data),
+    queryKey: ['dashboard-stats', selectedProductId],
+    queryFn: () => api.get(`/dashboard/stats${getParams()}`).then(r => r.data),
     refetchInterval: 5000,
   });
 
   const { data: charts } = useQuery({
-    queryKey: ['dashboard-charts'],
-    queryFn: () => api.get('/dashboard/charts').then(r => r.data),
+    queryKey: ['dashboard-charts', selectedProductId],
+    queryFn: () => api.get(`/dashboard/charts${getParams()}`).then(r => r.data),
     refetchInterval: 5000,
   });
 

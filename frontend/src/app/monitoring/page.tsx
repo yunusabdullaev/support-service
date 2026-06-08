@@ -7,21 +7,30 @@ import { ServiceMonitor, Incident } from '@/types';
 import { ServiceStatusBadge, StatusBadge } from '@/components/ui/Badge';
 import { formatDateTime, formatDuration } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import { Server } from 'lucide-react';
 import Link from 'next/link';
 
 export default function MonitoringPage() {
   const { t } = useI18n();
 
+  const { selectedProductId } = useProduct();
+
   const { data: monitors = [], isLoading } = useQuery<ServiceMonitor[]>({
-    queryKey: ['monitors'],
-    queryFn: () => api.get('/monitoring').then(r => r.data),
+    queryKey: ['monitors', selectedProductId],
+    queryFn: () => {
+      const p = selectedProductId ? `?productId=${selectedProductId}` : '';
+      return api.get(`/monitoring/services${p}`).then(r => r.data);
+    },
     refetchInterval: 30000,
   });
 
   const { data: incidents = [] } = useQuery<Incident[]>({
-    queryKey: ['incidents'],
-    queryFn: () => api.get('/incidents').then(r => r.data),
+    queryKey: ['incidents', selectedProductId],
+    queryFn: () => {
+      const p = selectedProductId ? `?productId=${selectedProductId}` : '';
+      return api.get(`/incidents${p}`).then(r => r.data);
+    },
     refetchInterval: 30000,
   });
 

@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import {
   Plus, Lightbulb, TrendingUp, UserPlus, Check,
   Download, Edit3, Trash2, X, Save, AlertCircle, Phone, User, Clock, ChevronRight
@@ -20,8 +21,8 @@ import { useAuth } from '@/lib/auth';
 export default function ImprovementsPage() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const { selectedProductId: productFilter } = useProduct();
   const qc = useQueryClient();
-  const [productFilter, setProductFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
@@ -184,11 +185,6 @@ export default function ImprovementsPage() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <select value={productFilter} onChange={e => setProductFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="">Barcha mahsulotlar</option>
-              {products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}
               className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <span className="text-slate-600 text-xs">-</span>

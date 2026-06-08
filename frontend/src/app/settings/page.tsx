@@ -7,9 +7,10 @@ import api from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
+import { useProduct } from '@/lib/product';
 import {
   Bot, CheckCircle2, AlertCircle, Settings2,
-  Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon
+  Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon, Package, Check
 } from 'lucide-react';
 
 function ChangePasswordForm() {
@@ -129,6 +130,7 @@ export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { selectedProductId, setSelectedProductId } = useProduct();
   const qc = useQueryClient();
 
   const [botToken, setBotToken] = useState('');
@@ -138,6 +140,11 @@ export default function SettingsPage() {
 
   const isAdmin = user?.role === 'ADMIN';
   const canManageBot = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER';
+
+  const { data: products = [] } = useQuery<{ id: string; name: string; description?: string; isActive: boolean }[]>({
+    queryKey: ['products'],
+    queryFn: () => api.get('/products').then(r => r.data),
+  });
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['telegram-settings'],
@@ -199,6 +206,58 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {/* Left Side: General Profile & User Settings */}
           <div className="space-y-6">
+            {/* Product Selection */}
+            <div className="glass-card p-6 space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-white">Mahsulot tanlash</h2>
+                  <p className="text-xs text-slate-500">Tizimdagi ma'lumotlarni filtr qilish uchun mahsulotni tanlang</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedProductId(null)}
+                  className={`relative p-4 rounded-xl border text-left transition-all ${
+                    selectedProductId === null
+                      ? 'bg-orange-500/10 border-orange-500/30'
+                      : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-white">Barcha mahsulotlar</span>
+                    {selectedProductId === null && <Check className="w-4 h-4 text-orange-400" />}
+                  </div>
+                  <p className="text-xs text-slate-400">Umumiy ko'rinish</p>
+                </button>
+
+                {products.filter(p => p.isActive).map(product => (
+                  <button
+                    key={product.id}
+                    onClick={() => setSelectedProductId(product.id)}
+                    className={`relative p-4 rounded-xl border text-left transition-all ${
+                      selectedProductId === product.id
+                        ? 'bg-orange-500/10 border-orange-500/30'
+                        : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-white">{product.name}</span>
+                      {selectedProductId === product.id && <Check className="w-4 h-4 text-orange-400" />}
+                    </div>
+                    {product.description && (
+                      <p className="text-xs text-slate-400 line-clamp-1" title={product.description}>
+                        {product.description}
+                      </p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* General Settings: Language & Theme */}
             <div className="glass-card p-6 space-y-6">
               <div className="flex items-center gap-3">

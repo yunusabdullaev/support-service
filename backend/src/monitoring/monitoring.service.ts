@@ -33,8 +33,9 @@ export class MonitoringService {
     private telegramService: TelegramService,
   ) {}
 
-  findAllServices() {
+  findAllServices(productId?: string) {
     return this.prisma.serviceMonitor.findMany({
+      where: productId ? { productId } : undefined,
       include: { product: { select: { id: true, name: true } } },
       orderBy: { name: 'asc' },
     });

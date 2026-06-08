@@ -10,6 +10,7 @@ import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
+import { useProduct } from '@/lib/product';
 import {
   Plus, Frown, X, Package, User, Calendar,
   ChevronRight, CircleDot, CheckCircle2, Eye, Clock,
@@ -35,10 +36,10 @@ const STATUS_COLORS_MAP: Record<DifficultyStatus, string> = {
 export default function DifficultiesPage() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const { selectedProductId: productFilter } = useProduct();
   const qc = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState('');
-  const [productFilter, setProductFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [selected, setSelected] = useState<Difficulty | null>(null);
@@ -231,11 +232,6 @@ export default function DifficultiesPage() {
             ))}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <select value={productFilter} onChange={e => setProductFilter(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="">{t('all')} ({t('product')})</option>
-              {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}
               className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <span className="text-slate-600 text-xs">–</span>

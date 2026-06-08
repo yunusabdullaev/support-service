@@ -8,6 +8,7 @@ import { KnowledgeArticle } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import { Plus, Search, BookOpen, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -15,14 +16,17 @@ const CATEGORIES = ['CRM', 'SIPUNI', 'SARKOR', 'MODERATOR', 'COMMON_QUESTIONS', 
 
 export default function KnowledgeBasePage() {
   const { t } = useI18n();
+  const { selectedProductId } = useProduct();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
 
   const { data: articles = [], isLoading } = useQuery<KnowledgeArticle[]>({
-    queryKey: ['kb', category],
+    queryKey: ['kb', category, selectedProductId],
     queryFn: () => {
-      const params = category ? `?category=${category}` : '';
-      return api.get(`/knowledge-base${params}`).then(r => r.data);
+      const params = new URLSearchParams();
+      if (category) params.set('category', category);
+      if (selectedProductId) params.set('productId', selectedProductId);
+      return api.get(`/knowledge-base?${params.toString()}`).then(r => r.data);
     },
   });
 

@@ -9,16 +9,21 @@ import { formatDateTime, formatDuration } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
 
+import { useProduct } from '@/lib/product';
+
 const SEVERITY_COLORS: Record<string, string> = {
   CRITICAL: 'bg-red-500', HIGH: 'bg-orange-500', MEDIUM: 'bg-yellow-500', LOW: 'bg-blue-500',
 };
 
 export default function IncidentsPage() {
   const { t } = useI18n();
+  const { selectedProductId } = useProduct();
 
   const { data: incidents = [], isLoading } = useQuery<Incident[]>({
-    queryKey: ['incidents'],
-    queryFn: () => api.get('/incidents').then(r => r.data),
+    queryKey: ['incidents', selectedProductId],
+    queryFn: () => api.get('/incidents', {
+      params: selectedProductId ? { productId: selectedProductId } : undefined
+    }).then(r => r.data),
     refetchInterval: 5000,
   });
 

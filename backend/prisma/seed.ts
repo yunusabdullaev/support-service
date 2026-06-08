@@ -38,6 +38,7 @@ async function main() {
   await prisma.product.create({ data: { name: 'ERP', description: 'Savdo va mijozlar boshqaruvi tizimi', isActive: true } });
   await prisma.product.create({ data: { name: 'EDI', description: 'Elektron hujjat almashinuvi (Electronic Data Interchange)', isActive: true } });
   await prisma.product.create({ data: { name: 'EDO', description: 'Elektron hujjat oqimi (Электронный документооборот)', isActive: true } });
+  await prisma.product.create({ data: { name: 'Hippo POS', description: 'Savdo nuqtasi va kassa boshqaruvi tizimi (Point of Sale)', isActive: true } });
 
   console.log('✅ Standard products created');
 

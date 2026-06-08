@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getStats() {
+  async getStats(productId?: string) {
     const [
       openBugs,
       criticalBugs,
@@ -18,27 +18,44 @@ export class DashboardService {
       weekIncidents,
     ] = await this.prisma.$transaction([
       this.prisma.bug.count({
-        where: { status: { notIn: ['CLOSED', 'REJECTED'] } },
+        where: {
+          status: { notIn: ['CLOSED', 'REJECTED'] },
+          ...(productId ? { productId } : {}),
+        },
       }),
       this.prisma.bug.count({
         where: {
           priority: 'CRITICAL',
           status: { notIn: ['CLOSED', 'REJECTED'] },
+          ...(productId ? { productId } : {}),
         },
       }),
       this.prisma.bug.count({
         where: {
           status: { in: ['FIXED', 'CLOSED'] },
           updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          ...(productId ? { productId } : {}),
         },
       }),
-      this.prisma.improvementRequest.count({ where: { status: 'NEW' } }),
+      this.prisma.improvementRequest.count({
+        where: {
+          status: 'NEW',
+          ...(productId ? { productId } : {}),
+        },
+      }),
       this.prisma.dialogReview.aggregate({
         _avg: { totalScore: true },
         _count: true,
+        where: productId ? { productId } : undefined,
       }),
-      this.prisma.dialogReview.count({ where: { status: 'REVIEWED' } }),
+      this.prisma.dialogReview.count({
+        where: {
+          status: 'REVIEWED',
+          ...(productId ? { productId } : {}),
+        },
+      }),
       this.prisma.serviceMonitor.findMany({
+        where: productId ? { productId } : undefined,
         select: {
           id: true,
           name: true,
@@ -48,11 +65,15 @@ export class DashboardService {
         },
       }),
       this.prisma.incident.count({
-        where: { status: { in: ['OPEN', 'INVESTIGATING'] } },
+        where: {
+          status: { in: ['OPEN', 'INVESTIGATING'] },
+          ...(productId ? { serviceMonitor: { productId } } : {}),
+        },
       }),
       this.prisma.incident.count({
         where: {
           createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          ...(productId ? { serviceMonitor: { productId } } : {}),
         },
       }),
     ]);
@@ -76,18 +97,18 @@ export class DashboardService {
     };
   }
 
-  async getCharts() {
+  async getCharts(productId?: string) {
     // Bugs per day (last 14 days)
-    const bugsPerDay = await this.getBugsPerDay();
+    const bugsPerDay = await this.getBugsPerDay(productId);
     // QA scores per week (last 8 weeks)
-    const qaPerWeek = await this.getQaPerWeek();
+    const qaPerWeek = await this.getQaPerWeek(productId);
     // Incidents per week (last 8 weeks)
-    const incidentsPerWeek = await this.getIncidentsPerWeek();
+    const incidentsPerWeek = await this.getIncidentsPerWeek(productId);
 
     return { bugsPerDay, qaPerWeek, incidentsPerWeek };
   }
 
-  private async getBugsPerDay() {
+  private async getBugsPerDay(productId?: string) {
     const days = Array.from({ length: 14 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (13 - i));
@@ -100,7 +121,10 @@ export class DashboardService {
         const nextDay = new Date(date);
         nextDay.setDate(nextDay.getDate() + 1);
         const count = await this.prisma.bug.count({
-          where: { createdAt: { gte: date, lt: nextDay } },
+          where: {
+            createdAt: { gte: date, lt: nextDay },
+            ...(productId ? { productId } : {}),
+          },
         });
         return {
           date: date.toISOString().split('T')[0],
@@ -112,7 +136,7 @@ export class DashboardService {
     return results;
   }
 
-  private async getQaPerWeek() {
+  private async getQaPerWeek(productId?: string) {
     const weeks = Array.from({ length: 8 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (7 - i) * 7);
@@ -126,7 +150,10 @@ export class DashboardService {
         nextWeek.setDate(nextWeek.getDate() + 7);
         const data = await this.prisma.dialogReview.aggregate({
           _avg: { totalScore: true },
-          where: { createdAt: { gte: date, lt: nextWeek } },
+          where: {
+            createdAt: { gte: date, lt: nextWeek },
+            ...(productId ? { productId } : {}),
+          },
         });
         return {
           week: `W${date.toISOString().split('T')[0]}`,
@@ -138,7 +165,7 @@ export class DashboardService {
     return results;
   }
 
-  private async getIncidentsPerWeek() {
+  private async getIncidentsPerWeek(productId?: string) {
     const weeks = Array.from({ length: 8 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (7 - i) * 7);
@@ -151,7 +178,10 @@ export class DashboardService {
         const nextWeek = new Date(date);
         nextWeek.setDate(nextWeek.getDate() + 7);
         const count = await this.prisma.incident.count({
-          where: { createdAt: { gte: date, lt: nextWeek } },
+          where: {
+            createdAt: { gte: date, lt: nextWeek },
+            ...(productId ? { serviceMonitor: { productId } } : {}),
+          },
         });
         return {
           week: `W${date.toISOString().split('T')[0]}`,

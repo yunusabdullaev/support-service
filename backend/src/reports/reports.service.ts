@@ -11,10 +11,12 @@ export class ReportsService {
     from?: string;
     to?: string;
     operatorId?: string;
+    productId?: string;
   }) {
     return this.prisma.dialogReview.findMany({
       where: {
         ...(filters?.operatorId && { operatorId: filters.operatorId }),
+        ...(filters?.productId && { productId: filters.productId }),
         ...(filters?.from && { createdAt: { gte: new Date(filters.from) } }),
         ...(filters?.to && { createdAt: { lte: new Date(filters.to) } }),
       },
@@ -90,8 +92,11 @@ export class ReportsService {
     });
   }
 
-  async getUptimeReport() {
+  async getUptimeReport(filters?: { productId?: string }) {
     return this.prisma.serviceMonitor.findMany({
+      where: {
+        ...(filters?.productId && { productId: filters.productId }),
+      },
       include: {
         _count: { select: { logs: true } },
         logs: {
@@ -150,7 +155,7 @@ export class ReportsService {
     return workbook.xlsx.writeBuffer();
   }
 
-  async exportQualityToPdf(filters?: { from?: string; to?: string }) {
+  async exportQualityToPdf(filters?: { from?: string; to?: string; productId?: string }) {
     const reviews = await this.getQualityReport(filters);
     return new Promise<Buffer>((resolve, reject) => {
       const doc = new PDFDocument({ margin: 30 });

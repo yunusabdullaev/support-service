@@ -10,6 +10,7 @@ import { ProductBadge } from '@/components/ProductBadge';
 import { formatDate, playNotificationSound } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
+import { useProduct } from '@/lib/product';
 import {
   Plus, Search, Clock, Bug as BugIcon, Download,
   UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare, Phone
@@ -20,8 +21,8 @@ import { UndoToast } from '@/components/ui/UndoToast';
 export default function BugsPage() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const { selectedProductId: productFilter } = useProduct();
   const [search, setSearch] = useState('');
-  const [productFilter, setProductFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<BugStatus | ''>('');
   const [priorityFilter, setPriorityFilter] = useState<BugPriority | ''>('');
   const [fromDate, setFromDate] = useState('');
@@ -165,11 +166,6 @@ export default function BugsPage() {
             <input type="text" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
-          <select value={productFilter} onChange={e => setProductFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">Barcha mahsulotlar</option>
-            {products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as BugStatus | '')}
             className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">{t('all_statuses')}</option>

@@ -22,8 +22,8 @@ export class MonitoringController {
   constructor(private service: MonitoringService) {}
 
   @Get('services')
-  findAll() {
-    return this.service.findAllServices();
+  findAll(@Query('productId') productId?: string) {
+    return this.service.findAllServices(productId);
   }
 
   @Get('services/:id')

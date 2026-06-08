@@ -26,8 +26,9 @@ export class IncidentsController {
   findAll(
     @Query('status') status?: IncidentStatus,
     @Query('severity') severity?: IncidentSeverity,
+    @Query('productId') productId?: string,
   ) {
-    return this.service.findAll({ status, severity });
+    return this.service.findAll({ status, severity, productId });
   }
 
   @Get(':id')

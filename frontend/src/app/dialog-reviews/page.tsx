@@ -8,6 +8,7 @@ import { DialogReview, User } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import { Plus, Star } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,13 +27,16 @@ function ScoreBar({ score, max = 2 }: { score: number; max?: number }) {
 
 export default function DialogReviewsPage() {
   const { t } = useI18n();
+  const { selectedProductId } = useProduct();
   const [operatorFilter, setOperatorFilter] = useState('');
 
   const { data: reviews = [], isLoading } = useQuery<DialogReview[]>({
-    queryKey: ['reviews', operatorFilter],
+    queryKey: ['reviews', operatorFilter, selectedProductId],
     queryFn: () => {
-      const params = operatorFilter ? `?operatorId=${operatorFilter}` : '';
-      return api.get(`/dialog-reviews${params}`).then(r => r.data);
+      const params = new URLSearchParams();
+      if (operatorFilter) params.set('operatorId', operatorFilter);
+      if (selectedProductId) params.set('productId', selectedProductId);
+      return api.get(`/dialog-reviews?${params.toString()}`).then(r => r.data);
     },
     refetchInterval: 5000,
   });

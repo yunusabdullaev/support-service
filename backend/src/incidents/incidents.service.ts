@@ -31,11 +31,12 @@ export class IncidentsService {
     private telegramService: TelegramService,
   ) {}
 
-  findAll(filters?: { status?: IncidentStatus; severity?: IncidentSeverity }) {
+  findAll(filters?: { status?: IncidentStatus; severity?: IncidentSeverity; productId?: string }) {
     return this.prisma.incident.findMany({
       where: {
         ...(filters?.status && { status: filters.status }),
         ...(filters?.severity && { severity: filters.severity }),
+        ...(filters?.productId && { serviceMonitor: { productId: filters.productId } }),
       },
       include: {
         serviceMonitor: { select: { id: true, name: true } },

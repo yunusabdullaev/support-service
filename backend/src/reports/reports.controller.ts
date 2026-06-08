@@ -13,8 +13,9 @@ export class ReportsController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('operatorId') operatorId?: string,
+    @Query('productId') productId?: string,
   ) {
-    return this.service.getQualityReport({ from, to, operatorId });
+    return this.service.getQualityReport({ from, to, operatorId, productId });
   }
 
   @Get('bugs')
@@ -41,8 +42,8 @@ export class ReportsController {
   }
 
   @Get('uptime')
-  getUptime() {
-    return this.service.getUptimeReport();
+  getUptime(@Query('productId') productId?: string) {
+    return this.service.getUptimeReport({ productId });
   }
 
   @Get('export/excel')
@@ -79,8 +80,9 @@ export class ReportsController {
     @Res() res: Response,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('productId') productId?: string,
   ) {
-    const buffer = await this.service.exportQualityToPdf({ from, to });
+    const buffer = await this.service.exportQualityToPdf({ from, to, productId });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
