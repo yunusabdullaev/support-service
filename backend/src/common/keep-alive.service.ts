@@ -8,6 +8,7 @@ export class KeepAliveService {
   private readonly urls = [
     'https://hippo-support-backend.onrender.com/',
     'https://hippo-support-frontend.onrender.com/',
+    'https://support-service.uz/',
   ];
 
   /**
