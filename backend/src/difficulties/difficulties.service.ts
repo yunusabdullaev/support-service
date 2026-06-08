@@ -97,12 +97,24 @@ export class DifficultiesService {
     return this.prisma.difficulty.delete({ where: { id } });
   }
 
-  async upvote(id: string) {
+  async upvote(id: string, phone: string) {
     await this.findOne(id);
-    return this.prisma.difficulty.update({
-      where: { id },
-      data: { reportedByCount: { increment: 1 } },
-      select: { id: true, reportedByCount: true },
+    return this.prisma.$transaction(async (tx) => {
+      let upvote: any = null;
+      if (phone) {
+        upvote = await tx.difficultyUpvote.create({
+          data: {
+            difficultyId: id,
+            phone,
+          },
+        });
+      }
+      const difficulty = await tx.difficulty.update({
+        where: { id },
+        data: { reportedByCount: { increment: 1 } },
+        select: { id: true, reportedByCount: true },
+      });
+      return { difficulty, upvote };
     });
   }
 

@@ -201,6 +201,7 @@ model Bug {
   createdBy   User            @relation("BugCreatedBy", fields: [createdById], references: [id])
   attachments BugAttachment[]
   comments    BugComment[]
+  upvotes     BugUpvote[]
 
   @@index([productId])
   @@index([assignedToId])
@@ -422,6 +423,7 @@ model Difficulty {
 
   product   Product? @relation(fields: [productId], references: [id])
   createdBy User     @relation("DifficultyCreatedBy", fields: [createdById], references: [id])
+  upvotes   DifficultyUpvote[]
 
   @@index([productId])
   @@index([createdById])
@@ -430,3 +432,28 @@ model Difficulty {
 
   @@map("difficulties")
 }
+
+model BugUpvote {
+  id        String   @id @default(cuid())
+  bugId     String
+  phone     String
+  createdAt DateTime @default(now())
+
+  bug Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
+
+  @@index([bugId])
+  @@map("bug_upvotes")
+}
+
+model DifficultyUpvote {
+  id           String   @id @default(cuid())
+  difficultyId String
+  phone        String
+  createdAt    DateTime @default(now())
+
+  difficulty Difficulty @relation(fields: [difficultyId], references: [id], onDelete: Cascade)
+
+  @@index([difficultyId])
+  @@map("difficulty_upvotes")
+}
+

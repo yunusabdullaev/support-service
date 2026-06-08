@@ -131,12 +131,24 @@ export class BugsService {
     return this.prisma.bug.delete({ where: { id } });
   }
 
-  async upvote(id: string) {
+  async upvote(id: string, phone: string) {
     await this.findOne(id);
-    return this.prisma.bug.update({
-      where: { id },
-      data: { reportedByClientsCount: { increment: 1 } },
-      select: { id: true, reportedByClientsCount: true },
+    return this.prisma.$transaction(async (tx) => {
+      let upvote: any = null;
+      if (phone) {
+        upvote = await tx.bugUpvote.create({
+          data: {
+            bugId: id,
+            phone,
+          },
+        });
+      }
+      const bug = await tx.bug.update({
+        where: { id },
+        data: { reportedByClientsCount: { increment: 1 } },
+        select: { id: true, reportedByClientsCount: true },
+      });
+      return { bug, upvote };
     });
   }
 

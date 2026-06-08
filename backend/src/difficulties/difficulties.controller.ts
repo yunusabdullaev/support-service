@@ -56,8 +56,8 @@ export class DifficultiesController {
   }
 
   @Post(':id/upvote')
-  upvote(@Param('id') id: string) {
-    return this.service.upvote(id);
+  upvote(@Param('id') id: string, @Body('phone') phone: string) {
+    return this.service.upvote(id, phone || '');
   }
 
   @Post(':id/downvote')

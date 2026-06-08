@@ -12,7 +12,7 @@ import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import {
   Plus, Search, Clock, Bug as BugIcon, Download,
-  UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare
+  UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare, Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -27,6 +27,8 @@ export default function BugsPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [justUpvoted, setJustUpvoted] = useState<string | null>(null);
+  const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
+  const [upvotePhone, setUpvotePhone] = useState('');
   const [undoId, setUndoId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editBug, setEditBug] = useState<Bug | null>(null);
@@ -50,11 +52,13 @@ export default function BugsPage() {
     user?.role === 'TEAM_LEADER' || user?.id === createdById;
 
   const upvoteMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/bugs/${id}/upvote`),
-    onSuccess: (_, id) => {
+    mutationFn: ({ id, phone }: { id: string; phone: string }) => api.post(`/bugs/${id}/upvote`, { phone }),
+    onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['bugs'] });
       setJustUpvoted(id);
       setUndoId(id);
+      setUpvoteTarget(null);
+      setUpvotePhone('');
       setTimeout(() => setJustUpvoted(null), 1500);
     },
   });
@@ -251,8 +255,8 @@ export default function BugsPage() {
                               {bug.reportedByClientsCount}
                             </span>
                             <button
-                              onClick={() => upvoteMutation.mutate(bug.id)}
-                              disabled={upvoteMutation.isPending && upvoteMutation.variables === bug.id}
+                              onClick={() => setUpvoteTarget(bug.id)}
+                              disabled={upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id}
                               className={`w-7 h-7 rounded-lg flex items-center justify-center border font-bold transition-all duration-200 ${
                                 justUpvoted === bug.id
                                   ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
@@ -261,7 +265,7 @@ export default function BugsPage() {
                             >
                               {justUpvoted === bug.id ? (
                                 <Check className="w-3.5 h-3.5" />
-                              ) : upvoteMutation.isPending && upvoteMutation.variables === bug.id ? (
+                              ) : upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id ? (
                                 <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                               ) : (
                                 <span className="text-[10px] font-extrabold">+1</span>
@@ -366,6 +370,48 @@ export default function BugsPage() {
           onUndo={() => downvoteMutation.mutate(undoId)}
           onDismiss={() => setUndoId(null)}
         />
+      )}
+
+      {/* Upvote Phone Modal */}
+      {upvoteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Mijoz telefon raqami</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Qaysi mijoz bu xatolikni yubordi?</p>
+              </div>
+              <button onClick={() => { setUpvoteTarget(null); setUpvotePhone(''); }} className="ml-auto p-1 text-slate-500 hover:text-slate-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="tel"
+              value={upvotePhone}
+              onChange={e => setUpvotePhone(e.target.value)}
+              placeholder="+998 90 000 00 00"
+              autoFocus
+              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm mb-4"
+              onKeyDown={e => e.key === 'Enter' && upvotePhone && upvoteMutation.mutate({ id: upvoteTarget, phone: upvotePhone })}
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setUpvoteTarget(null); setUpvotePhone(''); }} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">
+                {t('cancel')}
+              </button>
+              <button
+                onClick={() => upvoteMutation.mutate({ id: upvoteTarget, phone: upvotePhone })}
+                disabled={!upvotePhone || upvoteMutation.isPending}
+                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {upvoteMutation.isPending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                +1 Qo'shish
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </AppLayout>
   );

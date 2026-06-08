@@ -62,8 +62,8 @@ export class BugsController {
   }
 
   @Post(':id/upvote')
-  upvote(@Param('id') id: string) {
-    return this.bugsService.upvote(id);
+  upvote(@Param('id') id: string, @Body('phone') phone: string) {
+    return this.bugsService.upvote(id, phone || '');
   }
 
   @Post(':id/downvote')
