@@ -64,7 +64,11 @@ export class KnowledgeBaseService {
 
   create(dto: CreateArticleDto, createdById: string) {
     return this.prisma.knowledgeArticle.create({
-      data: { ...dto, createdById },
+      data: {
+        ...dto,
+        productId: dto.productId || null,
+        createdById,
+      },
     });
   }
 
@@ -72,7 +76,11 @@ export class KnowledgeBaseService {
     await this.findOne(id);
     return this.prisma.knowledgeArticle.update({
       where: { id },
-      data: { ...dto, updatedById },
+      data: {
+        ...dto,
+        productId: dto.productId === '' ? null : dto.productId ?? undefined,
+        updatedById,
+      },
     });
   }
 
