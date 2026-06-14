@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Support & Monitoring System — Foydalanuvchi Qo'llanmasi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --primary-light: #f1f5f9;
+      --secondary: #0ea5e9;
+      --accent: #d97706;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --gray-light: #f1f5f9;
+      --gray-text: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.6;
+      font-size: 14px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .document-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 50px 60px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border-radius: 8px;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+      .document-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+    }
+
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+
+    h1, h2, h3, h4 {
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.2;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+      margin-top: 30px;
+    }
+
+    h2 {
+      font-size: 18px;
+      border-left: 4px solid var(--secondary);
+      padding-left: 10px;
+      margin-top: 25px;
+      margin-bottom: 15px;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #0369a1;
+    }
+
+    p {
+      margin-bottom: 15px;
+      color: var(--gray-text);
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 20px;
+      color: var(--gray-text);
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--light);
+    }
+
+    .cover-page {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 257mm;
+      padding: 20px 0;
+      border-bottom: 4px solid var(--primary);
+    }
+
+    .cover-header {
+      font-size: 14px;
+      color: var(--gray-text);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .cover-body {
+      margin: auto 0;
+    }
+
+    .logo-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: var(--primary-light);
+      border: 2px solid var(--secondary);
+      border-radius: 20px;
+      margin-bottom: 30px;
+      color: var(--primary);
+      font-size: 36px;
+    }
+
+    .cover-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+      margin-bottom: 15px;
+    }
+
+    .cover-subtitle {
+      font-size: 18px;
+      color: var(--gray-text);
+      margin-bottom: 40px;
+      font-weight: 400;
+      max-width: 600px;
+    }
+
+    .meta-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--secondary);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      max-width: 480px;
+    }
+
+    .meta-row {
+      display: flex;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .meta-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .meta-label {
+      width: 140px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .meta-val {
+      color: var(--dark);
+    }
+
+    .cover-footer {
+      font-size: 12px;
+      color: var(--gray-text);
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-primary { background-color: var(--primary-light); color: var(--primary); }
+    .badge-success { background-color: #d1fae5; color: var(--success); }
+    .badge-warning { background-color: #fef3c7; color: var(--warning); }
+    .badge-danger { background-color: #fee2e2; color: var(--danger); }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--gray-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #0284c7;
+    }
+
+    pre {
+      background-color: var(--primary);
+      color: #f8fafc;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+      color: #e0f2fe;
+      font-size: 11px;
+    }
+
+    .step-item {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .toc-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border-bottom: 1px dotted var(--border);
+    }
+
+    .toc-name {
+      background-color: white;
+      padding-right: 5px;
+    }
+
+    .toc-page {
+      background-color: white;
+      padding-left: 5px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .alert-box {
+      background-color: var(--primary-light);
+      border-left: 4px solid var(--secondary);
+      padding: 15px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 20px;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="document-container">
+
+  <!-- ==================== COVER PAGE ==================== -->
+  <div class="cover-page">
+    <div class="cover-header">
+      Technical Support & Monitoring System — Project Documentation
+    </div>
+
+    <div class="cover-body">
+      <div class="logo-wrapper">
+        🛠️
+      </div>
+      <h1 class="cover-title">Texnik Qo'llab-quvvatlash va Monitoring Tizimi</h1>
+      <p class="cover-subtitle">Mijozlar bilan ishlash sifatini oshirish, xatoliklarni (bugs) boshqarish va xizmatlar barqarorligini monitoring qilish tizimi bo'yicha amaliy qo'llanma.</p>
+
+      <div class="meta-box">
+        <div class="meta-row">
+          <div class="meta-label">Loyiha nomi:</div>
+          <div class="meta-val">Support Service Application</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">Talaba:</div>
+          <div class="meta-val">Yunus Abdullayev</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">Turi:</div>
+          <div class="meta-val">Enterprise Support Portal</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">Versiya:</div>
+          <div class="meta-val">1.0.0</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">Sana:</div>
+          <div class="meta-val">Iyun 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <span>Toshkent, O'zbekiston</span>
+      <span>Hujjatlar va Yo'riqnomalar</span>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== TABLE OF CONTENTS ==================== -->
+  <h2>Mundarija</h2>
+  <p>Ushbu yo'riqnoma tizimni mahalliy o'rnatish, ma'lumotlar bazasi arxitekturasi va rollarga oid barcha amallarni o'z ichiga oladi.</p>
+  
+  <ul class="toc-list" style="margin-top: 20px;">
+    <li class="toc-item"><span class="toc-name">1. Kirish va Tizim Maqsadi</span><span class="toc-page">1</span></li>
+    <li class="toc-item"><span class="toc-name">2. Mahalliy O'rnatish va Sozlash (Local Installation)</span><span class="toc-page">2</span></li>
+    <li class="toc-item"><span class="toc-name">3. Foydalanuvchi Rollari (RBAC)</span><span class="toc-page">3</span></li>
+    <li class="toc-item"><span class="toc-name">4. Tizimning Asosiy Funksional Modullari</span><span class="toc-page">4</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.1. Monitoring va Insidentlar boshqaruvi</span><span class="toc-page">4</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.2. Xatoliklar (Bugs) va Muammolarni Ro'yxatga Olish</span><span class="toc-page">5</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.3. Dialog Sifatini Nazorat Qilish (Dialog Reviews)</span><span class="toc-page">5</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.4. Takomillashtirish So'rovlari (Improvements)</span><span class="toc-page">6</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.5. Bilimlar Bazasi (Knowledge Base) va Maqolalar</span><span class="toc-page">6</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.6. Mijozlar Ro'yxati va Izohlar yuritilishi</span><span class="toc-page">7</span></li>
+    <li class="toc-item"><span class="toc-name">&nbsp;&nbsp;&nbsp;&nbsp;4.7. Qiyinchiliklar va Upvote Tizimi</span><span class="toc-page">7</span></li>
+    <li class="toc-item"><span class="toc-name">5. Telegram Bildirishnomalari Sozlamalari</span><span class="toc-page">8</span></li>
+    <li class="toc-item"><span class="toc-name">6. Muammolarni Hal Etish (Troubleshooting FAQ)</span><span class="toc-page">8</span></li>
+  </ul>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 1 ==================== -->
+  <h1>1. Kirish va Tizim Maqsadi</h1>
+  <p><strong>Support Service App</strong> — bu mahsulotlar (masalan: CRM, SIPUNI, SARKOR, MODERATOR) bo'yicha mijozlarga texnik xizmat ko'rsatuvchi jamoalar (Support) ish faoliyatini avtomatlashtirish, xizmatlarning faollik holatini (uptime) monitoring qilish hamda operatorlarning suhbatlarini baholash (dialog review) uchun mo'ljallangan yagona korporativ tizimdir.</p>
+  
+  <p>Tizim bir vaqtning o'zida ham **monitoring agenti**, ham **helpdesk tizimi** rolini bajaradi. Tizim yordamida tashqi tizimlar holatini muntazam tekshirib borish, uzilishlar (outage) yuz berganda avtomatik Telegram orqali insidentlar (incidents) ochish va ularni tegishli dasturchilarga yuklash imkoniyati mavjud.</p>
+
+  <h3>Loyiha arxitekturasi:</h3>
+  <ul>
+    <li><strong>Backend API:</strong> Node.js, NestJS v10 (Prisma ORM, PostgreSQL)</li>
+    <li><strong>Frontend:</strong> Next.js (App Router, Tailwind CSS, shadcn/ui)</li>
+    <li><strong>Ma'lumotlar yaxlitligi:</strong> PostgreSQL relyatsion bazasi, barcha jadvallar referentsial yaxlitlik (Foreign Keys) bilan bog'langan.</li>
+  </ul>
+
+  <div class="alert-box">
+    <div class="alert-title">🔒 Ma'lumotlar xavfsizligi</div>
+    <p style="margin-bottom: 0;">Foydalanuvchilar parollari sha256/bcrypt yordamida shifrlanib saqlanadi. Har bir API so'rov JWT (JSON Web Token) orqali tekshiriladi va foydalanuvchining roliga asosan ruxsatlar beriladi.</p>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 2 ==================== -->
+  <h1>2. Mahalliy O'rnatish va Sozlash (Local Installation)</h1>
+  <p>Loyihani mahalliy muhitda ishga tushirish uchun quyidagi ko'rsatmalarni bajaring:</p>
+
+  <div class="step-item">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <h4>Loyihani yuklab olish va paketlarni o'rnatish</h4>
+      <p>Avval backend loyiha papkasiga kirib, kerakli kutubxonalarni yuklang:</p>
+      <pre><code>cd backend
+npm install</code></pre>
+    </div>
+  </div>
+
+  <div class="step-item">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <h4>Muhit o'zgaruvchilarini sozlash</h4>
+      <p><code>backend/.env</code> faylini yarating va quyidagi parametrlarni o'rnating:</p>
+      <pre><code>DATABASE_URL="postgresql://postgres:parol@localhost:5432/supportdb?schema=public"
+JWT_SECRET="support_app_super_secret_key_2026"
+PORT=3005</code></pre>
+    </div>
+  </div>
+
+  <div class="step-item">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <h4>Ma'lumotlar bazasini tayyorlash</h4>
+      <p>Prisma migratsiyalarini ishga tushiring:</p>
+      <pre><code>npx prisma migrate dev --name init
+npx prisma db seed</code></pre>
+      <p>Serverni ishga tushiring:</p>
+      <pre><code>npm run start:dev</code></pre>
+    </div>
+  </div>
+
+  <div class="step-item">
+    <div class="step-number">4</div>
+    <div class="step-content">
+      <h4>Frontend qismini sozlash</h4>
+      <p>Frontend papkasida paketlarni o'rnatib, uni ishga tushiring:</p>
+      <pre><code>cd ../frontend
+npm install
+npm run dev</code></pre>
+      <p>Dastur brauzerda <code>http://localhost:3000</code> manzilida ochiladi. Login ma'lumotlari seeder orqali o'rnatiladi.</p>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 3 ==================== -->
+  <h1>3. Foydalanuvchi Rollari (RBAC)</h1>
+  <p>Tizimda 4 xil foydalanuvchi rollari belgilangan va har birining o'z majburiyati va ruxsatnomalari mavjud:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rol nomi</th>
+        <th>Ruxsatnomalar va Funksiyalar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ADMIN</strong></td>
+        <td>
+          Tizimdagi barcha ma'lumotlarni ko'rish va boshqarish. Foydalanuvchilarni (Operatorlar, Team Leaderlar) qo'shish, rollarini o'zgartirish va bloklash. Telegram bildirishnomalari sozlamalarini sozlash.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>TEAM_LEADER</strong></td>
+        <td>
+          Operatorlarning suhbatlarini baholash (Dialog Reviews). Bilimlar bazasida maqolalar yozish. Insidentlar va monitoring holatlarini tekshirish hamda hisobotlarni ko'rish.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>OPERATOR</strong></td>
+        <td>
+          Tizimga yangi kelib tushgan Buglarni ro'yxatga olish, mijozlar va ularning qiyinchiliklarini belgilash. Shaxsiy dialog ballari reytingini ko'rish. Bilimlar bazasidan maqolalar qidirib topish va foydalanish.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>DEVELOPER</strong></td>
+        <td>
+          O'ziga biriktirilgan Buglar va Insidentlarni ko'rish. Buglarning statusini o'zgartirish (FIXED, CLOSED) hamda insidentlar sababini (root cause) yozib, ularni yopish.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 4 ==================== -->
+  <h1>4. Tizimning Asosiy Funksional Modullari</h1>
+  
+  <h2>4.1. Monitoring va Insidentlar boshqaruvi</h2>
+  <p>Xizmatlar monitoringi (Service Monitor) tashqi tizimlarning barqarorligini kuzatib boradi. Agar biror xizmatda xatolik yuz bersa (offline), tizim darhol ogohlantiradi.</p>
+  
+  <ul>
+    <li><strong>Monitoring yuritilishi:</strong> Har bir xizmat uchun URL, tekshirish intervali va kutilayotgan status kod (expected code, masalan 200) o'rnatiladi.</li>
+    <li><strong>Monitor jurnali (Monitor Logs):</strong> Xizmatning javob berish vaqti (ms) va holati saqlanib boriladi.</li>
+    <li><strong>Insident yaratish:</strong> Tizim xizmat offline bo'lganini aniqlasa, avtomatik ravishda <code>CRITICAL</code> yoki <code>HIGH</code> darajadagi insident (Incident) ochadi va mas'ul dasturchi biriktiriladi. Muammo hal qilingach, dasturchi ildiz sababini (root cause) ko'rsatib insidentni yopadi.</li>
+  </ul>
+
+  <h2>4.2. Xatoliklar (Bugs) va Muammolarni Ro'yxatga Olish</h2>
+  <p>Mijozlar telefon qilganda yoki yozganda operatorlar aniqlangan tizim xatolarini "Bugs" bo'limida ro'yxatdan o'tkazadilar.</p>
+  
+  <p>Har bir bug uchun quyidagi ma'lumotlar saqlanadi:</p>
+  <ul>
+    <li><strong>Sarlavha va Tavsif:</strong> Xatolik nima haqida va qanday yuzaga keldi.</li>
+    <li><strong>Qayta tiklash bosqichlari (Steps to Reproduce):</strong> Bugni qayta ko'rish uchun qanday ketma-ketlikni bajarish kerak.</li>
+    <li><strong>Kutilgan va Haqiqiy Natijalar.</strong></li>
+    <li><strong>Biriktirilgan fayllar (Attachments):</strong> Xatolik skrinshotlari yoki log fayllari.</li>
+    <li><strong>Upvote Tizimi:</strong> Agar ushbu xatolik bo'yicha boshqa mijozlar ham murojaat qilsa, operatorlar <code>Upvote</code> qilishadi. Bu esa ishlab chiquvchilarga eng ko'p ta'sir qilayotgan buglarni birinchi navbatda hal qilishga yordam beradi.</li>
+  </ul>
+
+  <h2>4.3. Dialog Sifatini Nazorat Qilish (Dialog Reviews)</h2>
+  <p>Team Leaderlar operatorlar va mijozlar o'rtasidagi suhbatlarni (dialoglarni) audit qilib borishadi. Bu mijozlarga xizmat ko'rsatish sifatini oshiradi.</p>
+  
+  <p>Baholash parametrlari (har biri 100 ballik tizimda):</p>
+  <div class="grid-2">
+    <div style="background-color: var(--light); padding: 12px; border: 1px solid var(--border); border-radius: 6px;">
+      <ul>
+        <li><strong>First Response Score:</strong> Birinchi javob tezligi va salomlashish odobi.</li>
+        <li><strong>Understanding Score:</strong> Mijoz muammosini qanchalik to'g'ri tushungani.</li>
+        <li><strong>Solution Score:</strong> Berilgan yechimning to'g'riligi.</li>
+      </ul>
+    </div>
+    <div style="background-color: var(--light); padding: 12px; border: 1px solid var(--border); border-radius: 6px;">
+      <ul>
+        <li><strong>Communication Score:</strong> Muloqot madaniyati va to'g'ri so'zlashuv.</li>
+        <li><strong>Closing Score:</strong> Suhbatni to'g'ri yakunlash.</li>
+        <li><strong>Total Score:</strong> Barcha ballar yig'indisi asosida avtomatik hisoblangan o'rtacha ko'rsatkich.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>4.4. Takomillashtirish So'rovlari (Improvements)</h2>
+  <p>Mijozlar tomonidan bildirilgan takliflar yoki tizimni yaxshilash g'oyalari shu bo'limda yuritiladi:</p>
+  
+  <ul>
+    <li><strong>Biznes qiymati (Business Value):</strong> Taklif amalga oshirilsa, kompaniyaga qanday foyda olib kelishi.</li>
+    <li><strong>Upvotes:</strong> Boshqa mijozlar ham xuddi shunday taklif bersa, taklif ovozlari soni oshirib boriladi.</li>
+    <li><strong>Statuslar:</strong> Takliflar <code>NEW</code>, <code>UNDER_REVIEW</code>, <code>PLANNED</code>, <code>IN_DEVELOPMENT</code>, <code>DONE</code> va <code>REJECTED</code> bosqichlaridan o'tadi.</li>
+  </ul>
+
+  <h2>4.5. Bilimlar Bazasi (Knowledge Base) va Maqolalar</h2>
+  <p>Operatorlar tez va to'g'ri javob berishlari uchun ichki yo'riqnomalar va ma'lumotlar bazasi maqolalari yuritiladi.</p>
+  
+  <p>Kategoriyalar:</p>
+  <ul>
+    <li><strong>CRM va SIPUNI:</strong> Telefoniya va mijozlar bazasi bilan ishlash bo'yicha yo'riqnomalar.</li>
+    <li><strong>SARKOR va MODERATOR:</strong> Maxsus ichki tizimlar bo'yicha texnik qo'llanmalar.</li>
+    <li><strong>Troubleshooting:</strong> Ko'p uchraydigan texnik xatolarni hal qilish bo'yicha maqolalar.</li>
+  </ul>
+
+  <h2>4.6. Mijozlar Ro'yxati va Izohlar yuritilishi</h2>
+  <p>Kompaniya bilan ishlaydigan yirik mijozlar (korporativ mijozlar) ro'yxati boshqariladi. Ularning filiallari soni (branchCount), xodimlari va ular bilan bog'liq maxsus izohlar (ClientComment) saqlanadi. Bu orqali mijoz qo'ng'iroq qilganda uning barcha ma'lumotlari operatorga ko'rinadi.</p>
+
+  <h2>4.7. Qiyinchiliklar va Upvote Tizimi</h2>
+  <p>Tizimdan foydalanishda foydalanuvchilar qanday qiyinchiliklarga (Difficulties) duch kelishayotganini belgilaydi. Bu orqali UX/UI dizaynerlar va menejerlar dasturning noqulay qismlarini aniqlab, ularni osonlashtirish choralarini ko'rishadi.</p>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 5 ==================== -->
+  <h1>5. Telegram Bildirishnomalari Sozlamalari</h1>
+  <p>Monitoring jarayonida tizim oflayn bo'lsa yoki kritik xatolik (CRITICAL Incident) yuzaga kelsa, mas'ullarga zudlik bilan Telegram orqali xabar yuborish mexanizmi mavjud:</p>
+
+  <ol>
+    <li><strong>Bot Token o'rnatish:</strong> Admin panelda <code>Telegram Settings</code> bo'limidan maxsus bot tokeni kiritiladi.</li>
+    <li><strong>Telefon raqamlarni ro'yxatga olish:</strong> Bildirishnoma yuborilishi kerak bo'lgan xodimlarning telefon raqamlari yoziladi.</li>
+    <li><strong>Telegram guruh yoki chat sozlash:</strong> Tizim mas'ullarning <code>telegramChatId</code> parametrlari orqali xabarlarni to'g'ridan-to'g'ri yuboradi, bu esa muammoga tezkor reaksiya bildirish imkonini beradi.</li>
+  </ol>
+
+  <!-- ==================== SECTION 6 ==================== -->
+  <h1>6. Muammolarni Hal Etish (Troubleshooting FAQ)</h1>
+  
+  <p><strong>S: Monitorlar qanday ishlaydi va ular avtomatik tekshiradimi?</strong><br>
+  J: Ha, NestJS-ning <code>@nestjs/schedule</code> moduli yordamida orqa fonda cron-vazifa (cron job) ishlaydi va belgilangan interval bo'yicha (masalan, har 5 daqiqada) tizimlarni tekshirib boradi.</p>
+
+  <p><strong>S: Oddiy operator monitoring sozlamalarini o'zgartira oladimi?</strong><br>
+  J: Yo'q. Monitoring xizmatlarini (Service Monitors) qo'shish va tahrirlash faqat <code>ADMIN</code> roliga ega foydalanuvchilarga ruxsat berilgan.</p>
+
+  <p><strong>S: Dialog ballari qanday hisoblanadi?</strong><br>
+  J: Team Leader tomonidan qo'yilgan beshta ballning (First response, Understanding, Solution, Communication, Closing) o'rtacha arifmetik qiymati tizim tomonidan avtomatik tarzda hisoblanib, bazada <code>totalScore</code> maydoniga yoziladi.</p>
+
+  <p><strong>S: Ma'lumotlarni qanday tozalaymiz yoki yangilaymiz?</strong><br>
+  J: Agar bazani boshlang'ich holatga qaytarish kerak bo'lsa, backend papkasida <code>npx prisma db seed</code> buyrug'ini bajarasiz. Bu barcha jadvallarga yangi test ma'lumotlarini yuklab beradi.</p>
+
+</div>
+
+</body>
+</html>
