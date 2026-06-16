@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { formatDate } from '@/lib/utils';
+import { formatDateTime } from '@/lib/utils';
 import {
   ArrowLeft,
   Phone,
@@ -15,7 +15,12 @@ import {
   Send,
   Trash2,
   MessageSquare,
-  Megaphone
+  Megaphone,
+  Package,
+  Clock,
+  User2,
+  Calculator,
+  Settings2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -47,8 +52,40 @@ interface ClientDetail {
   note?: string;
   isActive: boolean;
   createdAt: string;
+  productId?: string;
+  installationStatus: string;
+  bitrixStatus: string;
+  createdBy?: {
+    id: string;
+    fullName: string;
+    role: string;
+  };
+  product?: {
+    id: string;
+    name: string;
+  };
   comments: ClientComment[];
 }
+
+function calculateTariff(employeeCount: number): number {
+  if (employeeCount <= 3) return 500000;
+  return 500000 + (employeeCount - 3) * 100000;
+}
+
+function formatSum(amount: number): string {
+  return amount.toLocaleString('uz-UZ') + ' so\'m';
+}
+
+const INSTALLATION_STATUS_COLORS: Record<string, string> = {
+  NEW: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  IN_PROGRESS: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  INSTALLED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+};
+
+const BITRIX_STATUS_COLORS: Record<string, string> = {
+  NOT_ADDED: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+  ADDED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+};
 
 export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -77,6 +114,14 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     },
   });
 
+  const updateStatusMutation = useMutation({
+    mutationFn: (data: Record<string, string>) => api.patch(`/clients/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client', id] });
+      qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || commentMutation.isPending) return;
@@ -85,6 +130,23 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   const canDeleteComment = (authorId: string) => {
     return user?.id === authorId || user?.role === 'ADMIN';
+  };
+
+  const getInstallationLabel = (status: string) => {
+    const map: Record<string, string> = {
+      NEW: t('installation_new'),
+      IN_PROGRESS: t('installation_in_progress'),
+      INSTALLED: t('installation_installed'),
+    };
+    return map[status] || status;
+  };
+
+  const getBitrixLabel = (status: string) => {
+    const map: Record<string, string> = {
+      NOT_ADDED: t('bitrix_not_added'),
+      ADDED: t('bitrix_added'),
+    };
+    return map[status] || status;
   };
 
   if (isLoading) {
@@ -106,6 +168,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       </AppLayout>
     );
   }
+
+  const tariff = calculateTariff(client.employeeCount);
 
   return (
     <AppLayout>
@@ -132,6 +196,58 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-xl shadow-indigo-950/35">
                   {client.fullName.charAt(0).toUpperCase()}
                 </div>
+              </div>
+
+              {/* Status badges */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {client.product && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                    <Package className="w-3 h-3" />
+                    {client.product.name}
+                  </span>
+                )}
+              </div>
+
+              {/* Inline status selectors */}
+              <div className="space-y-3">
+                <div>
+                  <span className="block text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                    <Settings2 className="w-3 h-3" />
+                    {t('client_installation_status')}
+                  </span>
+                  <select
+                    value={client.installationStatus}
+                    onChange={e => updateStatusMutation.mutate({ installationStatus: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium border focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer ${INSTALLATION_STATUS_COLORS[client.installationStatus] || 'bg-slate-800/60 border-slate-700 text-slate-300'}`}
+                  >
+                    <option value="NEW">{t('installation_new')}</option>
+                    <option value="IN_PROGRESS">{t('installation_in_progress')}</option>
+                    <option value="INSTALLED">{t('installation_installed')}</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                    <Settings2 className="w-3 h-3" />
+                    {t('client_bitrix_status')}
+                  </span>
+                  <select
+                    value={client.bitrixStatus}
+                    onChange={e => updateStatusMutation.mutate({ bitrixStatus: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium border focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer ${BITRIX_STATUS_COLORS[client.bitrixStatus] || 'bg-slate-800/60 border-slate-700 text-slate-300'}`}
+                  >
+                    <option value="NOT_ADDED">{t('bitrix_not_added')}</option>
+                    <option value="ADDED">{t('bitrix_added')}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tariff */}
+              <div className="flex items-center justify-between px-3 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <span className="text-xs text-emerald-400/70 font-medium flex items-center gap-1.5">
+                  <Calculator className="w-3.5 h-3.5" />
+                  {t('client_tariff')}
+                </span>
+                <span className="text-base font-bold text-emerald-400">{formatSum(tariff)}</span>
               </div>
 
               <div className="border-t border-slate-800/80 pt-4 space-y-3.5">
@@ -199,8 +315,18 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 </div>
               )}
 
-              <div className="border-t border-slate-800/80 pt-4 text-center">
-                <span className="text-[10px] text-slate-600">{formatDate(client.createdAt)}</span>
+              {/* Footer: Created by + Date (bigger) */}
+              <div className="border-t border-slate-800/80 pt-4 space-y-2">
+                {client.createdBy && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <User2 className="w-3.5 h-3.5" />
+                    <span>{t('client_created_by')}: <span className="text-slate-300 font-medium">{client.createdBy.fullName}</span></span>
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-300">
+                  <Clock className="w-4 h-4 text-slate-500" />
+                  <span>{formatDateTime(client.createdAt)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -253,7 +379,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-600">{formatDate(c.createdAt)}</span>
+                            <span className="text-[10px] text-slate-600">{formatDateTime(c.createdAt)}</span>
                             {canDeleteComment(c.createdById) && (
                               <button
                                 onClick={() => deleteCommentMutation.mutate(c.id)}

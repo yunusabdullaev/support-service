@@ -95,6 +95,17 @@ enum DifficultyStatus {
   REJECTED
 }
 
+enum InstallationStatus {
+  NEW
+  IN_PROGRESS
+  INSTALLED
+}
+
+enum BitrixStatus {
+  NOT_ADDED
+  ADDED
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -122,6 +133,7 @@ model User {
   updatedArticles    KnowledgeArticle[] @relation("ArticleUpdatedBy")
   difficulties       Difficulty[]       @relation("DifficultyCreatedBy")
   clientComments     ClientComment[]
+  createdClients     Client[]           @relation("ClientCreatedBy")
 
   @@map("users")
 }
@@ -141,6 +153,7 @@ model Product {
   serviceMonitors ServiceMonitor[]
   articles        KnowledgeArticle[]
   difficulties    Difficulty[]
+  clients         Client[]
 
   @@map("products")
 }
@@ -392,23 +405,33 @@ model TelegramSetting {
 }
 
 model Client {
-  id           String   @id @default(cuid())
-  fullName     String
-  phone        String
-  direction    String?
-  position     String?
-  location     String?
-  branchCount  Int      @default(1)
-  employeeCount Int     @default(0)
-  referredFrom String?
-  note         String?  @db.Text
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String             @id @default(cuid())
+  fullName           String
+  phone              String
+  direction          String?
+  position           String?
+  location           String?
+  branchCount        Int                @default(1)
+  employeeCount      Int                @default(0)
+  referredFrom       String?
+  note               String?            @db.Text
+  isActive           Boolean            @default(true)
+  createdById        String?
+  productId          String?
+  installationStatus InstallationStatus @default(NEW)
+  bitrixStatus       BitrixStatus       @default(NOT_ADDED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
+  createdBy   User?    @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
   comments    ClientComment[]
 
   @@index([createdAt])
+  @@index([createdById])
+  @@index([productId])
+  @@index([installationStatus])
+  @@index([bitrixStatus])
 
   @@map("clients")
 }

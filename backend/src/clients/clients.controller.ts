@@ -41,8 +41,8 @@ export class ClientsController {
   }
 
   @Post()
-  create(@Body() dto: CreateClientDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateClientDto, @CurrentUser() user: any) {
+    return this.service.create(dto, user.id);
   }
 
   @Patch(':id')

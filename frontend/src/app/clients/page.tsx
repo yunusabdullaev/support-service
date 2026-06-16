@@ -6,12 +6,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
-import { formatDate } from '@/lib/utils';
+import { formatDateTime } from '@/lib/utils';
 import {
   Plus, Search, UserCheck, Phone, MapPin, Briefcase,
-  GitBranch, Building2, Edit3, Trash2, X, Save, AlertCircle, Download, Megaphone
+  Building2, Edit3, Trash2, X, Save, AlertCircle, Download, Megaphone,
+  Package, Clock, User2, Calculator
 } from 'lucide-react';
 import Link from 'next/link';
+
+interface Product {
+  id: string;
+  name: string;
+}
 
 interface Client {
   id: string;
@@ -26,7 +32,39 @@ interface Client {
   note?: string;
   isActive: boolean;
   createdAt: string;
+  productId?: string;
+  installationStatus: string;
+  bitrixStatus: string;
+  createdBy?: {
+    id: string;
+    fullName: string;
+    role: string;
+  };
+  product?: {
+    id: string;
+    name: string;
+  };
 }
+
+function calculateTariff(employeeCount: number): number {
+  if (employeeCount <= 3) return 500000;
+  return 500000 + (employeeCount - 3) * 100000;
+}
+
+function formatSum(amount: number): string {
+  return amount.toLocaleString('uz-UZ') + ' so\'m';
+}
+
+const INSTALLATION_STATUS_COLORS: Record<string, string> = {
+  NEW: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  IN_PROGRESS: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  INSTALLED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+};
+
+const BITRIX_STATUS_COLORS: Record<string, string> = {
+  NOT_ADDED: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+  ADDED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+};
 
 export default function ClientsPage() {
   const { t } = useI18n();
@@ -72,6 +110,23 @@ export default function ClientsPage() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Client> }) => api.patch(`/clients/${id}`, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); setEditClient(null); },
   });
+
+  const getInstallationLabel = (status: string) => {
+    const map: Record<string, string> = {
+      NEW: t('installation_new'),
+      IN_PROGRESS: t('installation_in_progress'),
+      INSTALLED: t('installation_installed'),
+    };
+    return map[status] || status;
+  };
+
+  const getBitrixLabel = (status: string) => {
+    const map: Record<string, string> = {
+      NOT_ADDED: t('bitrix_not_added'),
+      ADDED: t('bitrix_added'),
+    };
+    return map[status] || status;
+  };
 
   return (
     <AppLayout>
@@ -172,8 +227,24 @@ export default function ClientsPage() {
                   </div>
                 </div>
 
+                {/* Status badges row */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {client.product && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                      <Package className="w-3 h-3" />
+                      {client.product.name}
+                    </span>
+                  )}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${INSTALLATION_STATUS_COLORS[client.installationStatus] || ''}`}>
+                    {getInstallationLabel(client.installationStatus)}
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${BITRIX_STATUS_COLORS[client.bitrixStatus] || ''}`}>
+                    {getBitrixLabel(client.bitrixStatus)}
+                  </span>
+                </div>
+
                 {/* Info grid */}
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 text-xs text-slate-400">
                     <Phone className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                     <span className="truncate">{client.phone}</span>
@@ -198,6 +269,10 @@ export default function ClientsPage() {
                     <UserCheck className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                     <span>{client.employeeCount} {t('employees')}</span>
                   </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Calculator className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                    <span className="font-medium text-emerald-400">{formatSum(calculateTariff(client.employeeCount))}</span>
+                  </div>
                   {client.referredFrom && (
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <Megaphone className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
@@ -211,7 +286,20 @@ export default function ClientsPage() {
                     {client.note}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-slate-700">{formatDate(client.createdAt)}</p>
+
+                {/* Footer: created by + date */}
+                <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between">
+                  {client.createdBy && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <User2 className="w-3 h-3" />
+                      <span>{client.createdBy.fullName}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 text-sm font-medium text-slate-400">
+                    <Clock className="w-3.5 h-3.5 text-slate-600" />
+                    <span>{formatDateTime(client.createdAt)}</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -267,6 +355,12 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
   isPending: boolean;
 }) {
   const { t } = useI18n();
+
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: () => api.get('/products').then(r => r.data),
+  });
+
   const [form, setForm] = useState({
     fullName: client.fullName,
     phone: client.phone,
@@ -277,8 +371,13 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
     employeeCount: client.employeeCount,
     referredFrom: client.referredFrom || '',
     note: client.note || '',
+    productId: client.productId || '',
+    installationStatus: client.installationStatus || 'NEW',
+    bitrixStatus: client.bitrixStatus || 'NOT_ADDED',
   });
   const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }));
+
+  const tariff = calculateTariff(form.employeeCount);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -315,6 +414,60 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
               <label className="block text-xs text-slate-400 mb-1">{t('client_employees')}</label>
               <input type="number" min={0} value={form.employeeCount} onChange={e => set('employeeCount', parseInt(e.target.value) || 0)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
+
+            {/* Tariff display */}
+            <div className="col-span-2">
+              <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                <span className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                  <Calculator className="w-3.5 h-3.5" />
+                  {t('client_tariff')}
+                </span>
+                <span className="text-sm font-bold text-emerald-400">{formatSum(tariff)}</span>
+              </div>
+            </div>
+
+            {/* Product */}
+            <div className="col-span-2">
+              <label className="block text-xs text-slate-400 mb-1">{t('client_product')}</label>
+              <select
+                value={form.productId}
+                onChange={e => set('productId', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="">{t('select_product')}</option>
+                {products.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Installation Status */}
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_installation_status')}</label>
+              <select
+                value={form.installationStatus}
+                onChange={e => set('installationStatus', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="NEW">{t('installation_new')}</option>
+                <option value="IN_PROGRESS">{t('installation_in_progress')}</option>
+                <option value="INSTALLED">{t('installation_installed')}</option>
+              </select>
+            </div>
+
+            {/* Bitrix Status */}
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{t('client_bitrix_status')}</label>
+              <select
+                value={form.bitrixStatus}
+                onChange={e => set('bitrixStatus', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="NOT_ADDED">{t('bitrix_not_added')}</option>
+                <option value="ADDED">{t('bitrix_added')}</option>
+              </select>
+            </div>
+
             <div className="col-span-2">
               <label className="block text-xs text-slate-400 mb-1">{t('client_location')}</label>
               <input value={form.location} onChange={e => set('location', e.target.value)} className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
@@ -331,7 +484,15 @@ function EditClientModal({ client, onClose, onSave, isPending }: {
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors">{t('cancel')}</button>
             <button
-              onClick={() => onSave(form)}
+              onClick={() => onSave({
+                ...form,
+                productId: form.productId || undefined,
+                direction: form.direction || undefined,
+                position: form.position || undefined,
+                location: form.location || undefined,
+                referredFrom: form.referredFrom || undefined,
+                note: form.note || undefined,
+              } as any)}
               disabled={isPending}
               className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
             >

@@ -12,6 +12,9 @@ export class CreateClientDto {
   employeeCount?: number;
   referredFrom?: string;
   note?: string;
+  productId?: string;
+  installationStatus?: string;
+  bitrixStatus?: string;
 }
 
 export class UpdateClientDto {
@@ -25,6 +28,9 @@ export class UpdateClientDto {
   referredFrom?: string;
   note?: string;
   isActive?: boolean;
+  productId?: string;
+  installationStatus?: string;
+  bitrixStatus?: string;
 }
 
 @Injectable()
@@ -50,6 +56,14 @@ export class ClientsService {
           to ? { createdAt: { lte: new Date(to) } } : {},
         ],
       },
+      include: {
+        createdBy: {
+          select: { id: true, fullName: true, role: true },
+        },
+        product: {
+          select: { id: true, name: true },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -58,6 +72,12 @@ export class ClientsService {
     const client = await this.prisma.client.findUnique({
       where: { id },
       include: {
+        createdBy: {
+          select: { id: true, fullName: true, role: true },
+        },
+        product: {
+          select: { id: true, name: true },
+        },
         comments: {
           include: {
             createdBy: {
@@ -78,15 +98,38 @@ export class ClientsService {
     return client;
   }
 
-  create(dto: CreateClientDto) {
-    return this.prisma.client.create({ data: dto });
+  create(dto: CreateClientDto, createdById?: string) {
+    return this.prisma.client.create({
+      data: {
+        ...dto,
+        createdById,
+      } as any,
+      include: {
+        createdBy: {
+          select: { id: true, fullName: true, role: true },
+        },
+        product: {
+          select: { id: true, name: true },
+        },
+      },
+    });
   }
 
   async update(id: string, dto: UpdateClientDto) {
-    // We use a simpler findUnique check to avoid querying relation when updating
     const client = await this.prisma.client.findUnique({ where: { id } });
     if (!client) throw new NotFoundException('Client not found');
-    return this.prisma.client.update({ where: { id }, data: dto });
+    return this.prisma.client.update({
+      where: { id },
+      data: dto as any,
+      include: {
+        createdBy: {
+          select: { id: true, fullName: true, role: true },
+        },
+        product: {
+          select: { id: true, name: true },
+        },
+      },
+    });
   }
 
   async remove(id: string) {
@@ -121,9 +164,6 @@ export class ClientsService {
     const comment = await this.prisma.clientComment.findUnique({ where: { id: commentId } });
     if (!comment) throw new NotFoundException('Comment not found');
 
-    // Only creator or admin can delete comments (standard pattern)
-    // We can fetch the user to verify role, or just check createdById.
-    // Let's check if the user is the creator. Admins can delete too.
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (comment.createdById !== userId && user?.role !== 'ADMIN') {
       throw new NotFoundException('Unauthorized to delete this comment');
@@ -134,6 +174,11 @@ export class ClientsService {
 
   count() {
     return this.prisma.client.count();
+  }
+
+  private calculateTariff(employeeCount: number): number {
+    if (employeeCount <= 3) return 500000;
+    return 500000 + (employeeCount - 3) * 100000;
   }
 
   async exportExcel(search?: string, from?: string, to?: string) {
@@ -150,7 +195,12 @@ export class ClientsService {
       { header: 'Location', key: 'location', width: 20 },
       { header: 'Branches', key: 'branchCount', width: 12 },
       { header: 'Staff Count', key: 'employeeCount', width: 12 },
+      { header: 'Product', key: 'product', width: 20 },
+      { header: 'Installation', key: 'installationStatus', width: 18 },
+      { header: 'Bitrix', key: 'bitrixStatus', width: 18 },
+      { header: 'Tariff (sum)', key: 'tariff', width: 15 },
       { header: 'Referred From', key: 'referredFrom', width: 20 },
+      { header: 'Created By', key: 'createdBy', width: 20 },
       { header: 'Active', key: 'isActive', width: 12 },
       { header: 'Notes', key: 'note', width: 35 },
       { header: 'Created At', key: 'createdAt', width: 20 },
@@ -164,7 +214,7 @@ export class ClientsService {
     };
     sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-    clients.forEach((c) => {
+    clients.forEach((c: any) => {
       sheet.addRow({
         id: c.id.slice(-8),
         fullName: c.fullName,
@@ -174,7 +224,12 @@ export class ClientsService {
         location: c.location || '—',
         branchCount: c.branchCount,
         employeeCount: c.employeeCount,
+        product: c.product?.name || '—',
+        installationStatus: c.installationStatus,
+        bitrixStatus: c.bitrixStatus,
+        tariff: this.calculateTariff(c.employeeCount),
         referredFrom: c.referredFrom || '—',
+        createdBy: c.createdBy?.fullName || '—',
         isActive: c.isActive ? 'Yes' : 'No',
         note: c.note || '—',
         createdAt: new Date(c.createdAt).toLocaleDateString('ru-RU'),
