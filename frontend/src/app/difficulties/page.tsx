@@ -241,7 +241,7 @@ export default function DifficultiesPage() {
         </div>
 
         {/* List */}
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -256,7 +256,7 @@ export default function DifficultiesPage() {
             </div>
           ) : (
             difficulties.map(d => (
-              <div key={d.id} className={`glass-card p-4 hover:border-slate-600 transition-all duration-200 border-l-4 group ${STATUS_COLORS_MAP[d.status]}`}>
+              <div key={d.id} className={`bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 group border-l-4 ${STATUS_COLORS_MAP[d.status]}`}>
                 <div className="flex items-start justify-between gap-3">
                   {/* +1 upvote button */}
                   <div className="flex flex-col items-center gap-0.5 flex-shrink-0">

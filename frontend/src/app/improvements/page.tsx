@@ -210,7 +210,7 @@ export default function ImprovementsPage() {
               const isUpvoting = upvoteMutation.isPending && upvoteMutation.variables?.id === imp.id;
 
               return (
-                <div key={imp.id} className="glass-card p-5 hover:border-slate-600 transition-all duration-200 group">
+                <div key={imp.id} className="bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-5 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 group">
                   <div className="flex items-start gap-4">
                     {/* +1 Client button */}
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
