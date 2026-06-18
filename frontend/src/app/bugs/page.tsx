@@ -185,19 +185,18 @@ export default function BugsPage() {
           </div>
         </div>
 
-        <div className="glass-card overflow-hidden">
+        <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-slate-500">
+            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center h-48 text-slate-500">
               <BugIcon className="w-8 h-8 mb-2" />
               <p>{t('no_bugs')}</p>
             </div>
           ) : (
-            <div className="space-y-3 p-4">
-              {filtered.map(bug => {
+            filtered.map(bug => {
                 const storedComments = typeof window !== 'undefined' ? localStorage.getItem(`viewed_bug_comments_${bug.id}`) : null;
                 const totalComments = bug._count?.comments || 0;
                 const newComments = storedComments !== null ? (totalComments - Number(storedComments)) : totalComments;
@@ -329,8 +328,7 @@ export default function BugsPage() {
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              })
           )}
         </div>
       </div>
