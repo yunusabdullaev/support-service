@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "buildCommand": "npx prisma generate && npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/monitoring/run-checks",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
