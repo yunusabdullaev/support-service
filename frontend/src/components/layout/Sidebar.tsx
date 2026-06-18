@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Bug, MessageSquare, Lightbulb, Activity,
   AlertTriangle, BookOpen, BarChart3, Users, Settings, Package,
-  ShieldCheck, Zap, UserCheck, Frown
+  ShieldCheck, Zap, UserCheck, Frown, CalendarDays
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -24,6 +24,7 @@ export function Sidebar() {
     { href: '/clients',        label: t('nav_clients'),         icon: UserCheck,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/knowledge-base', label: t('nav_knowledge_base'), icon: BookOpen,        roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/dialog-reviews', label: t('nav_dialog_reviews'), icon: MessageSquare,   roles: ['ADMIN', 'TEAM_LEADER'] },
+    { href: '/shifts',          label: t('nav_shifts') || 'Smen jadvali', icon: CalendarDays, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/monitoring',     label: t('nav_monitoring'),      icon: Activity,        roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/incidents',      label: t('nav_incidents'),       icon: AlertTriangle,   roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/reports',        label: t('nav_reports'),         icon: BarChart3,       roles: ['ADMIN', 'TEAM_LEADER'] },

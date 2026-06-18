@@ -18,6 +18,7 @@ import { TelegramModule } from './telegram/telegram.module';
 import { SettingsModule } from './settings/settings.module';
 import { ClientsModule } from './clients/clients.module';
 import { DifficultiesModule } from './difficulties/difficulties.module';
+import { ShiftsModule } from './shifts/shifts.module';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { AppController } from './app.controller';
@@ -55,6 +56,7 @@ import { KeepAliveService } from './common/keep-alive.service';
     SettingsModule,
     ClientsModule,
     DifficultiesModule,
+    ShiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService, KeepAliveService],

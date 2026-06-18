@@ -18,6 +18,7 @@ const translations = {
     nav_users: 'Foydalanuvchilar',
     nav_products: 'Mahsulotlar',
     nav_clients: 'Yangi Mijozlar',
+    nav_shifts: 'Smen jadvali',
     // Clients module
     clients_count: 'ta mijoz',
     new_client: 'Yangi mijoz',
@@ -379,6 +380,7 @@ const translations = {
     nav_users: 'Пользователи',
     nav_products: 'Продукты',
     nav_clients: 'Новые клиенты',
+    nav_shifts: 'Расписание смен',
     // Clients module
     clients_count: 'клиентов',
     new_client: 'Новый клиент',
@@ -724,6 +726,7 @@ const translations = {
     nav_users: 'Users',
     nav_products: 'Products',
     nav_clients: 'New Clients',
+    nav_shifts: 'Shift Schedule',
     // Clients module
     clients_count: 'clients',
     new_client: 'New Client',
