@@ -200,7 +200,7 @@ export default function BugsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">
-                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created_by'), t('created'), ''].map((h, i) => (
+                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created'), ''].map((h, i) => (
                       <th key={i} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
                     ))}
                   </tr>
@@ -283,19 +283,17 @@ export default function BugsPage() {
                           ) : <span className="text-xs text-slate-600">{t('unassigned')}</span>}
                         </td>
                         <td className="px-5 py-4">
-                          {bug.createdBy ? (
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-xs text-white">
-                                {bug.createdBy.fullName.charAt(0)}
-                              </div>
-                              <span className="text-xs text-slate-400">{bug.createdBy.fullName}</span>
-                            </div>
-                          ) : <span className="text-xs text-slate-600">—</span>}
-                        </td>
-                        <td className="px-5 py-4">
                           <div className="flex items-center gap-1 text-xs text-slate-500">
                             <Clock className="w-3 h-3" />{formatDate(bug.createdAt)}
                           </div>
+                          {bug.createdBy && (
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center text-[9px] text-white font-medium">
+                                {bug.createdBy.fullName.charAt(0)}
+                              </div>
+                              <span className="text-[11px] text-slate-500">{bug.createdBy.fullName}</span>
+                            </div>
+                          )}
                         </td>
                         {/* Action buttons */}
                         <td className="px-3 py-4">
