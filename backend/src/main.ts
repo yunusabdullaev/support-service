@@ -20,6 +20,7 @@ async function bootstrap() {
       const allowedOrigins = [
         'https://hippo-support.onrender.com',
         'https://hippo-support-frontend.onrender.com',
+        'https://support-service-rust.vercel.app',
         'https://support-service.uz',
         'https://www.support-service.uz',
         'http://127.0.0.1:3002',
