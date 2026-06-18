@@ -12,6 +12,7 @@ import {
   UserPlus, Edit2, Trash2, Mail, X, AlertTriangle,
   ShieldCheck, Shield, UserCheck, UserX, Check, Phone
 } from 'lucide-react';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 // ─── Types ───────────────────────────────────────────
 type Role = 'ADMIN' | 'TEAM_LEADER' | 'OPERATOR' | 'DEVELOPER';
@@ -249,15 +250,6 @@ function PhoneAssignModal({
   const [phone, setPhone] = useState(user.phone || '');
   const [tgId, setTgId] = useState(user.telegramChatId || '');
 
-  const formatPhone = (val: string) => {
-    const d = val.replace(/\D/g, '').slice(0, 12);
-    if (d.length <= 3) return d;
-    if (d.length <= 5) return `${d.slice(0,3)} ${d.slice(3)}`;
-    if (d.length <= 8) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5)}`;
-    if (d.length <= 10) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8)}`;
-    return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}`;
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -282,16 +274,10 @@ function PhoneAssignModal({
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
               Telefon raqam
             </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(formatPhone(e.target.value))}
-                placeholder="998 90 123 45 67"
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono tracking-wider"
-              />
-            </div>
+            <PhoneInput
+              value={phone}
+              onChange={setPhone}
+            />
           </div>
 
           <div>

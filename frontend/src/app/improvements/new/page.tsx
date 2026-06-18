@@ -9,6 +9,7 @@ import { Product } from '@/types';
 import { useI18n } from '@/lib/i18n';
 import { ArrowLeft, AlertCircle, Phone, ImagePlus, X, Upload } from 'lucide-react';
 import Link from 'next/link';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -165,13 +166,9 @@ export default function NewImprovementPage() {
               {t('client_phone')}
               <span className="text-[10px] text-slate-600 font-normal">(ixtiyoriy)</span>
             </label>
-            <input
-              id="improvement-phone"
-              type="tel"
+            <PhoneInput
               value={form.clientPhone}
-              onChange={e => set('clientPhone', e.target.value)}
-              placeholder="+998 90 000 00 00"
-              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              onChange={v => set('clientPhone', v)}
             />
           </div>
 

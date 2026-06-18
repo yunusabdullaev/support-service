@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { ArrowLeft, AlertCircle, Calculator } from 'lucide-react';
 import Link from 'next/link';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 interface Product {
   id: string;
@@ -109,13 +110,10 @@ export default function NewClientPage() {
             <label className="block text-sm font-medium text-slate-300 mb-1.5">
               {t('client_phone')} <span className="text-red-400">*</span>
             </label>
-            <input
-              required
-              type="tel"
+            <PhoneInput
               value={form.phone}
-              onChange={e => set('phone', e.target.value)}
-              placeholder="+998 90 000 00 00"
-              className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              onChange={v => set('phone', v)}
+              required
             />
           </div>
 

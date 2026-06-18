@@ -9,6 +9,7 @@ import { Product } from '@/types';
 import { useI18n } from '@/lib/i18n';
 import { ArrowLeft, AlertCircle, Frown, Package, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 export default function NewDifficultyPage() {
   const { t } = useI18n();
@@ -121,17 +122,10 @@ export default function NewDifficultyPage() {
               {t('client_phone') || 'Mijoz telefoni'}
               <span className="text-[10px] text-slate-600 font-normal ml-0.5">(ixtiyoriy)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-500 text-sm font-mono">+</span>
-              <input
-                id="difficulty-client-phone"
-                type="tel"
-                value={form.clientPhone}
-                onChange={e => set('clientPhone', e.target.value.replace(/\D/g, ''))}
-                placeholder="998901234567"
-                className="w-full pl-6 pr-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-              />
-            </div>
+            <PhoneInput
+              value={form.clientPhone}
+              onChange={v => set('clientPhone', v)}
+            />
           </div>
 
           {/* Description */}

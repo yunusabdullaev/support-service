@@ -9,6 +9,7 @@ import { Product, User } from '@/types';
 import { useI18n } from '@/lib/i18n';
 import { ArrowLeft, AlertCircle, ImagePlus, X } from 'lucide-react';
 import Link from 'next/link';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 const PRIORITY_STYLES: Record<string, string> = {
   CRITICAL: 'bg-red-500/20 border-red-500 text-red-300',
@@ -155,20 +156,10 @@ export default function NewBugPage() {
               Mijoz telefon raqami
               <span className="ml-1.5 text-xs font-normal text-slate-500">(ixtiyoriy)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-mono">+</span>
-              <input
-                id="bug-client-phone"
-                type="tel"
-                value={form.clientPhone}
-                onChange={e => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
-                  set('clientPhone', digits);
-                }}
-                placeholder="998901234567"
-                className="w-full pl-7 pr-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-              />
-            </div>
+            <PhoneInput
+              value={form.clientPhone}
+              onChange={v => set('clientPhone', v)}
+            />
             <p className="text-xs text-slate-500 mt-1">Xato haqida xabar bergan mijoz raqami</p>
           </div>
           <div>
