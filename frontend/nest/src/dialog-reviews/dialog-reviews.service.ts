@@ -77,7 +77,7 @@ export class DialogReviewsService {
     return this.prisma.dialogReview.create({
       data: {
         operatorId: dto.operatorId,
-        productId: dto.productId || null,
+        productId: dto.productId || undefined,
         clientName: dto.clientName,
         dialogText: dto.dialogText,
         reviewDate: dto.reviewDate ? new Date(dto.reviewDate) : new Date(),
