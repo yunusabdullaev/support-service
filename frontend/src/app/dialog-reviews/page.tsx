@@ -75,39 +75,78 @@ export default function DialogReviewsPage() {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {isLoading ? (
-            Array.from({length: 6}).map((_, i) => (
-              <div key={i} className="glass-card p-5 h-48 animate-pulse">
-                <div className="h-4 bg-slate-800 rounded mb-3 w-3/4" />
-                <div className="h-3 bg-slate-800 rounded mb-2 w-1/2" />
-              </div>
-            ))
+            <div className="flex items-center justify-center h-48">
+              <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center h-48 text-slate-500">
+              <Star className="w-8 h-8 mb-2" />
+              <p>{t('no_reviews')}</p>
+            </div>
           ) : reviews.map(review => (
-            <Link key={review.id} href={`/dialog-reviews/${review.id}`}>
-              <div className="glass-card p-5 hover:border-slate-600 transition-all duration-200 cursor-pointer h-full">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">{review.operator?.fullName}</p>
-                    <p className="text-xs text-slate-500">{review.clientName} · {formatDate(review.reviewDate)}</p>
+            <Link key={review.id} href={`/dialog-reviews/${review.id}`} className="block group">
+              <div className="bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+                <div className="flex items-start gap-4">
+                  {/* Left: Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <h3 className="text-[15px] font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">
+                        {review.operator?.fullName}
+                      </h3>
+                      <span className="text-xs text-slate-500">·</span>
+                      <span className="text-xs text-slate-500">{review.clientName}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {[
+                        { label: t('first_response_short') || 'Birinchi javob', score: review.firstResponseScore },
+                        { label: t('understanding_short') || 'Tushunish', score: review.understandingScore },
+                        { label: t('solution_short') || 'Yechim', score: review.solutionScore },
+                        { label: t('communication_short') || 'Muloqot', score: review.communicationScore },
+                        { label: t('closing_short') || 'Yakunlash', score: review.closingScore },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-1">
+                          <div className={`w-2 h-2 rounded-full ${item.score === 2 ? 'bg-emerald-400' : item.score === 1 ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                          <span className="text-[10px] text-slate-500">{item.score}/2</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-lg font-bold ${review.totalScore >= 8 ? 'text-emerald-400' : review.totalScore >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
-                      {review.totalScore}
-                    </span>
-                    <span className="text-slate-500 text-sm">/10</span>
+
+                  {/* Right: Meta info */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Score */}
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className={`text-lg font-bold ${review.totalScore >= 8 ? 'text-emerald-400' : review.totalScore >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {review.totalScore}
+                      </span>
+                      <span className="text-xs text-slate-600">/10</span>
+                    </div>
+
+                    {/* Product */}
+                    {review.product && (
+                      <div className="w-16 flex justify-center">
+                        <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+                          {review.product.name}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Status */}
+                    <div className="w-24 flex justify-center">
+                      <StatusBadge status={review.status} />
+                    </div>
+
+                    {/* Date */}
+                    <div className="w-28 text-right">
+                      <div className="text-[11px] text-slate-500">{formatDate(review.reviewDate)}</div>
+                      {review.reviewedBy && (
+                        <div className="text-[10px] text-slate-600 mt-0.5">{review.reviewedBy.fullName}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1.5 mb-3">
-                  <ScoreBar score={review.firstResponseScore} />
-                  <ScoreBar score={review.understandingScore} />
-                  <ScoreBar score={review.solutionScore} />
-                  <ScoreBar score={review.communicationScore} />
-                  <ScoreBar score={review.closingScore} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <StatusBadge status={review.status} />
-                  <span className="text-xs text-slate-500">{review.product?.name}</span>
                 </div>
               </div>
             </Link>
