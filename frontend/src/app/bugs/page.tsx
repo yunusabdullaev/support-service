@@ -196,133 +196,140 @@ export default function BugsPage() {
               <p>{t('no_bugs')}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-800">
-                    {[t('bug_title'), t('clients'), t('product'), t('priority'), t('status'), t('assigned_to'), t('created'), ''].map((h, i) => (
-                      <th key={i} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(bug => {
-                    const storedComments = typeof window !== 'undefined' ? localStorage.getItem(`viewed_bug_comments_${bug.id}`) : null;
-                    const totalComments = bug._count?.comments || 0;
-                    const newComments = storedComments !== null ? (totalComments - Number(storedComments)) : totalComments;
-                    const finalNewComments = Math.max(0, newComments);
+            <div className="space-y-3 p-4">
+              {filtered.map(bug => {
+                const storedComments = typeof window !== 'undefined' ? localStorage.getItem(`viewed_bug_comments_${bug.id}`) : null;
+                const totalComments = bug._count?.comments || 0;
+                const newComments = storedComments !== null ? (totalComments - Number(storedComments)) : totalComments;
+                const finalNewComments = Math.max(0, newComments);
 
-                    return (
-                      <tr key={bug.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group">
-                        <td className="px-5 py-4">
-                          <Link href={`/bugs/${bug.id}`} className="group/link block">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-medium text-slate-200 group-hover/link:text-indigo-400 transition-colors">{bug.title}</p>
-                              {isBugUpdated(bug) && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                  {t('updated_at')}
+                return (
+                  <div key={bug.id} className="group relative bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+                    <div className="flex items-start gap-4">
+                      {/* Left: Bug info */}
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/bugs/${bug.id}`} className="group/link block">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <h3 className="text-[15px] font-semibold text-slate-100 group-hover/link:text-indigo-400 transition-colors">{bug.title}</h3>
+                            {isBugUpdated(bug) && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                {t('updated_at')}
+                              </span>
+                            )}
+                            {finalNewComments > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded-full animate-pulse">
+                                <MessageSquare className="w-3 h-3 text-rose-400 fill-rose-400/20" />
+                                +{finalNewComments}
+                              </span>
+                            ) : (
+                              totalComments > 0 && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded-full border border-slate-700">
+                                  <MessageSquare className="w-3 h-3 text-slate-600" />
+                                  {totalComments}
                                 </span>
-                              )}
-                              {finalNewComments > 0 ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded animate-pulse" title={`${finalNewComments} new comments`}>
-                                  <MessageSquare className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20" />
-                                  +{finalNewComments}
-                                </span>
-                              ) : (
-                                totalComments > 0 && (
-                                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700">
-                                    <MessageSquare className="w-3.5 h-3.5 text-slate-600" />
-                                    {totalComments}
-                                  </span>
-                                )
-                              )}
-                            </div>
-                            <div className="flex flex-wrap items-start gap-x-2 gap-y-0.5 mt-0.5">
-                              {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded flex-shrink-0">{bug.module}</span>}
-                              {bug.clientPhone && <span className="text-[10px] font-mono text-emerald-400/80 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded flex-shrink-0">+{bug.clientPhone}</span>}
-                            </div>
-                            <p className="text-xs text-slate-400 mt-1 whitespace-pre-wrap">{bug.description}</p>
-                          </Link>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm font-semibold tabular-nums transition-colors ${justUpvoted === bug.id ? 'text-emerald-400' : 'text-slate-300'}`}>
-                              {bug.reportedByClientsCount}
-                            </span>
-                            <button
-                              onClick={() => setUpvoteTarget(bug.id)}
-                              disabled={upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id}
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center border font-bold transition-all duration-200 ${
-                                justUpvoted === bug.id
-                                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
-                                  : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-indigo-500/20 hover:border-indigo-500 hover:text-indigo-400 hover:scale-105'
-                              }`}
-                            >
-                              {justUpvoted === bug.id ? (
-                                <Check className="w-3.5 h-3.5" />
-                              ) : upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id ? (
-                                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <span className="text-[10px] font-extrabold">+1</span>
-                              )}
-                            </button>
+                              )
+                            )}
                           </div>
-                        </td>
-                        <td className="px-5 py-4">{bug.product && <ProductBadge name={bug.product.name} />}</td>
-                        <td className="px-5 py-4"><PriorityBadge priority={bug.priority} /></td>
-                        <td className="px-5 py-4"><StatusBadge status={bug.status} /></td>
-                        <td className="px-5 py-4">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                            {bug.module && <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">{bug.module}</span>}
+                            {bug.clientPhone && <span className="text-[10px] font-mono text-emerald-400/80 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+{bug.clientPhone}</span>}
+                          </div>
+                          <p className="text-xs text-slate-400/80 line-clamp-2 leading-relaxed">{bug.description}</p>
+                        </Link>
+                      </div>
+
+                      {/* Right: Meta info */}
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        {/* Clients count */}
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-sm font-bold tabular-nums transition-colors ${justUpvoted === bug.id ? 'text-emerald-400' : 'text-slate-300'}`}>
+                            {bug.reportedByClientsCount}
+                          </span>
+                          <button
+                            onClick={() => setUpvoteTarget(bug.id)}
+                            disabled={upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center border font-bold transition-all duration-200 ${
+                              justUpvoted === bug.id
+                                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
+                                : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-indigo-500/20 hover:border-indigo-500 hover:text-indigo-400 hover:scale-105'
+                            }`}
+                          >
+                            {justUpvoted === bug.id ? (
+                              <Check className="w-3.5 h-3.5" />
+                            ) : upvoteMutation.isPending && upvoteMutation.variables?.id === bug.id ? (
+                              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <span className="text-[10px] font-extrabold">+1</span>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Product */}
+                        <div className="w-16 flex justify-center">
+                          {bug.product && <ProductBadge name={bug.product.name} />}
+                        </div>
+
+                        {/* Priority */}
+                        <div className="w-20 flex justify-center">
+                          <PriorityBadge priority={bug.priority} />
+                        </div>
+
+                        {/* Status */}
+                        <div className="w-20 flex justify-center">
+                          <StatusBadge status={bug.status} />
+                        </div>
+
+                        {/* Assigned to */}
+                        <div className="w-28">
                           {bug.assignedTo ? (
                             <div className="flex items-center gap-1.5">
-                              <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-xs text-white">
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-medium shadow-sm">
                                 {bug.assignedTo.fullName.charAt(0)}
                               </div>
-                              <span className="text-xs text-slate-400">{bug.assignedTo.fullName}</span>
+                              <span className="text-xs text-slate-400 truncate">{bug.assignedTo.fullName}</span>
                             </div>
-                          ) : <span className="text-xs text-slate-600">{t('unassigned')}</span>}
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1 text-xs text-slate-500">
+                          ) : <span className="text-xs text-slate-600 italic">{t('unassigned')}</span>}
+                        </div>
+
+                        {/* Created info */}
+                        <div className="w-28 text-right">
+                          <div className="flex items-center justify-end gap-1 text-[11px] text-slate-500">
                             <Clock className="w-3 h-3" />{formatDate(bug.createdAt)}
                           </div>
                           {bug.createdBy && (
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center text-[9px] text-white font-medium">
-                                {bug.createdBy.fullName.charAt(0)}
-                              </div>
-                              <span className="text-[11px] text-slate-500">{bug.createdBy.fullName}</span>
+                            <div className="flex items-center justify-end gap-1 mt-0.5">
+                              <span className="text-[10px] text-slate-600">{bug.createdBy.fullName}</span>
                             </div>
                           )}
-                        </td>
-                        {/* Action buttons */}
-                        <td className="px-3 py-4">
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {canEditItem(bug.createdBy?.id) && (
-                              <button
-                                onClick={() => setEditBug(bug)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
-                                title={t('edit')}
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            {canDeleteItem(bug.createdBy?.id) && (
-                              <button
-                                onClick={() => setDeleteId(bug.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                                title={t('delete')}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="w-14 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {canEditItem(bug.createdBy?.id) && (
+                            <button
+                              onClick={() => setEditBug(bug)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                              title={t('edit')}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canDeleteItem(bug.createdBy?.id) && (
+                            <button
+                              onClick={() => setDeleteId(bug.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                              title={t('delete')}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
