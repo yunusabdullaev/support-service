@@ -87,7 +87,7 @@ export default function ShiftsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [addingCell, setAddingCell] = useState<{ date: string; shift: string } | null>(null);
 
-  const canManage = currentUser?.role === 'ADMIN' || currentUser?.role === 'TEAM_LEADER';
+  const canManage = currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'OPERATOR';
 
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
   const from = formatDateKey(weekDates[0]);
@@ -103,7 +103,18 @@ export default function ShiftsPage() {
     queryFn: () => api.get('/users').then(r => r.data),
   });
 
-  const operators = users.filter(u => u.isActive);
+  // TEAM_LEADER: ko'radi barcha operator + o'zi
+  // OPERATOR: faqat o'zi
+  const assignableUsers = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'TEAM_LEADER') {
+      return users.filter(u => u.isActive && (u.role === 'OPERATOR' || u.id === currentUser.id));
+    }
+    if (currentUser.role === 'OPERATOR') {
+      return users.filter(u => u.id === currentUser.id);
+    }
+    return [];
+  }, [users, currentUser]);
 
   const createMutation = useMutation({
     mutationFn: (data: { date: string; shiftType: string; userId: string }) =>
@@ -258,7 +269,7 @@ export default function ShiftsPage() {
                                 <span className="text-[10px] text-slate-300 truncate flex-1">
                                   {a.user.fullName.split(' ')[0]}
                                 </span>
-                                {canManage && (
+                                {(currentUser?.role === 'TEAM_LEADER' || (currentUser?.role === 'OPERATOR' && a.userId === currentUser?.id)) && (
                                   <button
                                     onClick={() => deleteMutation.mutate(a.id)}
                                     className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
@@ -288,7 +299,7 @@ export default function ShiftsPage() {
                                   onBlur={() => setAddingCell(null)}
                                 >
                                   <option value="">Tanlang...</option>
-                                  {operators
+                                  {assignableUsers
                                     .filter(op => !assigned.some(a => a.userId === op.id))
                                     .map(op => (
                                       <option key={op.id} value={op.id}>
