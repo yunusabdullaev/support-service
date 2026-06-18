@@ -1,0 +1,4 @@
+{"id":"cmpzdla9j0001ff3preppzi3u","name":"ERP","description":"Savdo va mijozlar boshqaruvi tizimi","isActive":true,"createdAt":"2026-06-04T10:51:52.76","updatedAt":"2026-06-16T18:45:07.344"}
+{"id":"cmpzdla9p0002ff3p2qbrwh3y","name":"EDI","description":"Elektron hujjat almashinuvi","isActive":true,"createdAt":"2026-06-04T10:51:52.765","updatedAt":"2026-06-16T18:45:07.359"}
+{"id":"cmpzdla9r0003ff3pv5yi1wwg","name":"EDO","description":"Elektron hujjat oqimi","isActive":true,"createdAt":"2026-06-04T10:51:52.767","updatedAt":"2026-06-16T18:45:07.364"}
+{"id":"cmq5460vs0003ai66ql4x98rb","name":"Hippo POS","description":"Savdo nuqtasi va kassa boshqaruvi tizimi (Point of Sale)","isActive":true,"createdAt":"2026-06-08T11:14:41.272","updatedAt":"2026-06-16T18:45:07.367"}

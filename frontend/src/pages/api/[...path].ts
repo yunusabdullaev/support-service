@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../../api/src/app.module';
+import { AppModule } from '../../../api/src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';

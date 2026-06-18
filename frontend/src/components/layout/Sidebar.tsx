@@ -50,7 +50,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {filtered.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+          const isActive = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href));
           return (
             <Link
               key={href}

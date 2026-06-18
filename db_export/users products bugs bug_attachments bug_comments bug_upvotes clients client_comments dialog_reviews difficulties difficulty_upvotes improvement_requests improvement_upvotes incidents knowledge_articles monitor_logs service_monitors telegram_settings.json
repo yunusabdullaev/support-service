@@ -1,0 +1,3 @@
+ERROR:  syntax error at or near "bugs"
+LINE 1: ...row_to_json(t) FROM (SELECT * FROM users products bugs bug_a...
+                                                             ^
