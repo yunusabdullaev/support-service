@@ -4,9 +4,10 @@ import { DialogReviewStatus } from '@prisma/client';
 
 export class CreateDialogReviewDto {
   operatorId: string;
-  productId: string;
+  productId?: string;
   clientName: string;
   dialogText: string;
+  reviewDate?: string;
   firstResponseScore: number;
   understandingScore: number;
   solutionScore: number;
@@ -73,9 +74,13 @@ export class DialogReviewsService {
       (dto.communicationScore || 0) +
       (dto.closingScore || 0);
 
+    const { reviewDate, productId, ...rest } = dto;
+
     return this.prisma.dialogReview.create({
       data: {
-        ...dto,
+        ...rest,
+        ...(productId ? { productId } : {}),
+        ...(reviewDate ? { reviewDate: new Date(reviewDate) } : {}),
         totalScore,
         reviewedById,
       },

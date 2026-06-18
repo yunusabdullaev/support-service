@@ -161,7 +161,7 @@ model Product {
 model DialogReview {
   id                  String             @id @default(auto()) @map("_id") @db.ObjectId
   operatorId          String             @db.ObjectId
-  productId           String             @db.ObjectId
+  productId           String?            @db.ObjectId
   clientName          String
   dialogText          String
   reviewDate          DateTime           @default(now())
@@ -178,9 +178,9 @@ model DialogReview {
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
-  operator   User    @relation("DialogOperator", fields: [operatorId], references: [id])
-  product    Product @relation(fields: [productId], references: [id])
-  reviewedBy User?   @relation("DialogReviewedBy", fields: [reviewedById], references: [id])
+  operator   User     @relation("DialogOperator", fields: [operatorId], references: [id])
+  product    Product? @relation(fields: [productId], references: [id])
+  reviewedBy User?    @relation("DialogReviewedBy", fields: [reviewedById], references: [id])
 
   @@map("dialog_reviews")
 }
