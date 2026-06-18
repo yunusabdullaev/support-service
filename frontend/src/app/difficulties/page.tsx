@@ -257,84 +257,95 @@ export default function DifficultiesPage() {
           ) : (
             difficulties.map(d => (
               <div key={d.id} className={`bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 group border-l-4 ${STATUS_COLORS_MAP[d.status]}`}>
-                <div className="flex items-start justify-between gap-3">
-                  {/* +1 upvote button */}
-                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-                    <button
-                      onClick={() => setUpvoteTarget(d.id)}
-                      disabled={upvoteMutation.isPending && upvoteMutation.variables?.id === d.id}
-                      className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 font-bold transition-all duration-200 ${
-                        justUpvoted === d.id
-                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
-                          : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-amber-500/20 hover:border-amber-500 hover:text-amber-400 hover:scale-105'
-                      }`}
-                    >
-                      {justUpvoted === d.id ? (
-                        <Check className="w-4 h-4" />
-                      ) : upvoteMutation.isPending && upvoteMutation.variables?.id === d.id ? (
-                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <><Frown className="w-3.5 h-3.5" /><span className="text-[9px] font-extrabold">+1</span></>
-                      )}
+                <div className="flex items-start gap-4">
+                  {/* Left: Content */}
+                  <div className="flex-1 min-w-0">
+                    <button onClick={() => openDetail(d)} className="block text-left w-full">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <h3 className="text-[15px] font-semibold text-slate-100 hover:text-indigo-400 transition-colors">{d.title}</h3>
+                        {isDifficultyUpdated(d) && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            {t('updated_at')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                        {d.clientPhone && <span className="text-[10px] font-mono text-emerald-400/80 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+{d.clientPhone}</span>}
+                      </div>
+                      <p className="text-xs text-slate-400/80 line-clamp-2 leading-relaxed">{d.description}</p>
                     </button>
-                    <span className={`text-sm font-bold tabular-nums transition-colors ${
-                      justUpvoted === d.id ? 'text-emerald-400' : 'text-slate-400'
-                    }`}>{d.reportedByCount}</span>
                   </div>
-                  <button onClick={() => openDetail(d)} className="flex-1 text-left min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <StatusBadge status={d.status} />
+
+                  {/* Right: Meta info */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Upvote */}
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-sm font-bold tabular-nums transition-colors ${justUpvoted === d.id ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        {d.reportedByCount}
+                      </span>
+                      <button
+                        onClick={() => setUpvoteTarget(d.id)}
+                        disabled={upvoteMutation.isPending && upvoteMutation.variables?.id === d.id}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center border font-bold transition-all duration-200 ${
+                          justUpvoted === d.id
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 scale-95'
+                            : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-amber-500/20 hover:border-amber-500 hover:text-amber-400 hover:scale-105'
+                        }`}
+                      >
+                        {justUpvoted === d.id ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : upvoteMutation.isPending && upvoteMutation.variables?.id === d.id ? (
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="text-[10px] font-extrabold">+1</span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Product */}
+                    <div className="w-16 flex justify-center">
                       {d.product && <ProductBadge name={d.product.name} size="xs" />}
                     </div>
-                    <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1 flex items-center gap-2 flex-wrap">
-                      {d.title}
-                      {isDifficultyUpdated(d) && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          {t('updated_at')}
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-xs text-slate-400 line-clamp-2">{d.description}</p>
-                    {d.clientPhone && (
-                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-slate-600 flex-shrink-0" />
-                        {d.clientPhone}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-4 mt-2">
-                      {d.createdBy && (
-                        <span className="flex items-center gap-1 text-[11px] text-slate-600">
-                          <User className="w-3 h-3" />{d.createdBy.fullName}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1 text-[11px] text-slate-600">
-                        <Calendar className="w-3 h-3" />{formatDate(d.createdAt)}
-                      </span>
-                    </div>
-                  </button>
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canEditItem(d.createdBy?.id) && (
-                      <button
-                        onClick={() => { openDetail(d); setTimeout(() => setIsEditing(true), 0); }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
-                        title={t('edit')}
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {canDeleteItem(d.createdBy?.id) && (
-                      <button
-                        onClick={() => setDeleteId(d.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                        title={t('delete')}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <ChevronRight className="w-4 h-4 text-slate-600 ml-1" />
+                    {/* Status */}
+                    <div className="w-24 flex justify-center">
+                      <StatusBadge status={d.status} />
+                    </div>
+
+                    {/* Created info */}
+                    <div className="w-28 text-right">
+                      <div className="flex items-center justify-end gap-1 text-[11px] text-slate-500">
+                        <Clock className="w-3 h-3" />{formatDate(d.createdAt)}
+                      </div>
+                      {d.createdBy && (
+                        <div className="flex items-center justify-end gap-1 mt-0.5">
+                          <span className="text-[10px] text-slate-600">{d.createdBy.fullName}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="w-14 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {canEditItem(d.createdBy?.id) && (
+                        <button
+                          onClick={() => { openDetail(d); setTimeout(() => setIsEditing(true), 0); }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors"
+                          title={t('edit')}
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {canDeleteItem(d.createdBy?.id) && (
+                        <button
+                          onClick={() => setDeleteId(d.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                          title={t('delete')}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
