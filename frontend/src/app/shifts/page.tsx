@@ -103,7 +103,7 @@ export default function ShiftsPage() {
     queryFn: () => api.get('/users').then(r => r.data),
   });
 
-  const operators = users.filter(u => u.role === 'OPERATOR' && u.isActive);
+  const operators = users.filter(u => u.isActive);
 
   const createMutation = useMutation({
     mutationFn: (data: { date: string; shiftType: string; userId: string }) =>
