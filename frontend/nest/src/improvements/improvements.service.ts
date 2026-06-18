@@ -11,6 +11,7 @@ export class CreateImprovementDto {
   source?: string;
   clientPhone?: string;
   businessValue?: string;
+  images?: string[];
 }
 
 export class UpdateImprovementDto {
@@ -21,6 +22,7 @@ export class UpdateImprovementDto {
   source?: string;
   clientPhone?: string;
   businessValue?: string;
+  images?: string[];
   status?: ImprovementStatus;
 }
 

@@ -106,6 +106,7 @@ export interface ImprovementRequest {
   source?: string;
   clientPhone?: string;
   businessValue?: string;
+  images?: string[];
   status: ImprovementStatus;
   createdBy?: { id: string; fullName: string };
   upvotes?: ImprovementUpvote[];

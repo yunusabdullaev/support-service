@@ -561,6 +561,20 @@ function DetailDrawer({ item, onClose, onEdit, onDelete, canEdit, canDelete }: {
             <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{item.description}</p>
           </div>
 
+          {/* Images */}
+          {item.images && item.images.length > 0 && (
+            <div className="mb-5">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Rasmlar</p>
+              <div className="grid grid-cols-2 gap-2">
+                {item.images.map((img, i) => (
+                  <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="rounded-lg overflow-hidden border border-slate-700 aspect-video bg-slate-800 block hover:border-indigo-500 transition-colors">
+                    <img src={img} alt={`Rasm ${i + 1}`} className="w-full h-full object-cover" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Meta */}
           <div className="grid grid-cols-2 gap-3 mb-5">
             {item.createdBy && (

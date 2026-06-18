@@ -251,6 +251,7 @@ model ImprovementRequest {
   source                  String?
   clientPhone             String?
   businessValue           String?
+  images                  String[]          @default([])
   status                  ImprovementStatus @default(NEW)
   createdById             String            @db.ObjectId
   createdAt               DateTime          @default(now())
