@@ -74,13 +74,21 @@ export class DialogReviewsService {
       (dto.communicationScore || 0) +
       (dto.closingScore || 0);
 
-    const { reviewDate, productId, ...rest } = dto;
-
     return this.prisma.dialogReview.create({
       data: {
-        ...rest,
-        ...(productId ? { productId } : {}),
-        ...(reviewDate ? { reviewDate: new Date(reviewDate) } : {}),
+        operatorId: dto.operatorId,
+        productId: dto.productId || null,
+        clientName: dto.clientName,
+        dialogText: dto.dialogText,
+        reviewDate: dto.reviewDate ? new Date(dto.reviewDate) : new Date(),
+        firstResponseScore: dto.firstResponseScore,
+        understandingScore: dto.understandingScore,
+        solutionScore: dto.solutionScore,
+        communicationScore: dto.communicationScore,
+        closingScore: dto.closingScore,
+        mistakes: dto.mistakes,
+        comment: dto.comment,
+        status: dto.status,
         totalScore,
         reviewedById,
       },
