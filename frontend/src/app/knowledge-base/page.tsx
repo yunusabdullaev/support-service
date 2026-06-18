@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { useProduct } from '@/lib/product';
-import { Plus, Search, BookOpen, ChevronRight } from 'lucide-react';
+import { Plus, Search, BookOpen, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 const CATEGORIES = ['CRM', 'SIPUNI', 'SARKOR', 'MODERATOR', 'COMMON_QUESTIONS', 'TROUBLESHOOTING', 'INTERNAL_RULES'];
@@ -40,16 +40,19 @@ export default function KnowledgeBasePage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">{t('knowledge_base')}</h1>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-indigo-400" />
+              {t('knowledge_base')}
+            </h1>
             <p className="text-slate-400 text-sm mt-0.5">{articles.length} {t('articles_count')}</p>
           </div>
-          <Link href="/knowledge-base/new" className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
+          <Link href="/knowledge-base/new" className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-indigo-900/30 hover:scale-[1.02] active:scale-[0.98]">
             <Plus className="w-4 h-4" /> {t('new_article')}
           </Link>
         </div>
 
-        <div className="glass-card p-4 space-y-3">
-          <div className="relative">
+        <div className="glass-card p-4 flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input type="text" placeholder={t('search_articles')} value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -68,34 +71,57 @@ export default function KnowledgeBasePage() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="glass-card flex flex-col items-center justify-center h-48 text-slate-500">
+            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center h-48 text-slate-500">
               <BookOpen className="w-8 h-8 mb-2" />
               <p>{t('no_articles')}</p>
             </div>
           ) : filtered.map(article => (
-            <Link key={article.id} href={`/knowledge-base/${article.id}`}>
-              <div className="glass-card p-4 flex items-center gap-4 hover:border-slate-600 transition-all duration-200">
-                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs px-1.5 py-0.5 bg-slate-800 rounded text-slate-500">{article.category.replace(/_/g, ' ')}</span>
-                    {article.product && <span className="text-xs text-slate-600">{article.product.name}</span>}
-                    <StatusBadge status={article.status} />
+            <Link key={article.id} href={`/knowledge-base/${article.id}`} className="block group">
+              <div className="bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20">
+                <div className="flex items-start gap-4">
+                  {/* Left: Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <h3 className="text-[15px] font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">{article.title}</h3>
+                    </div>
+                    <p className="text-xs text-slate-400/80 line-clamp-2 leading-relaxed">
+                      {article.content.replace(/<[^>]*>/g, '').substring(0, 200)}
+                    </p>
                   </div>
-                  <h3 className="text-sm font-semibold text-slate-200">{article.title}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {t('by')} {article.createdBy?.fullName} · {formatDate(article.createdAt)}
-                  </p>
+
+                  {/* Right: Meta info */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Category */}
+                    <div className="w-32 flex justify-center">
+                      <span className="text-[10px] font-medium text-indigo-400/90 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+                        {article.category.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+
+                    {/* Status */}
+                    <div className="w-24 flex justify-center">
+                      <StatusBadge status={article.status} />
+                    </div>
+
+                    {/* Created info */}
+                    <div className="w-28 text-right">
+                      <div className="flex items-center justify-end gap-1 text-[11px] text-slate-500">
+                        <Clock className="w-3 h-3" />{formatDate(article.createdAt)}
+                      </div>
+                      {article.createdBy && (
+                        <div className="flex items-center justify-end gap-1 mt-0.5">
+                          <span className="text-[10px] text-slate-600">{article.createdBy.fullName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
               </div>
             </Link>
           ))}
