@@ -1,12 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema for MongoDB
+// Hippo Support CRM
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -109,10 +109,10 @@ enum BitrixStatus {
 // ==================== MODELS ====================
 
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   fullName     String
   email        String   @unique
-  phone        String?  @unique
+  phone        String?
   telegramChatId String?
   passwordHash String
   role         Role     @default(OPERATOR)
@@ -139,7 +139,7 @@ model User {
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String   @unique
   description String?
   isActive    Boolean  @default(true)
@@ -159,11 +159,11 @@ model Product {
 }
 
 model DialogReview {
-  id                  String             @id @default(cuid())
-  operatorId          String
-  productId           String
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  operatorId          String             @db.ObjectId
+  productId           String             @db.ObjectId
   clientName          String
-  dialogText          String             @db.Text
+  dialogText          String
   reviewDate          DateTime           @default(now())
   firstResponseScore  Int                @default(0)
   understandingScore  Int                @default(0)
@@ -171,10 +171,10 @@ model DialogReview {
   communicationScore  Int                @default(0)
   closingScore        Int                @default(0)
   totalScore          Int                @default(0)
-  mistakes            String?            @db.Text
-  comment             String?            @db.Text
+  mistakes            String?
+  comment             String?
   status              DialogReviewStatus @default(DRAFT)
-  reviewedById        String?
+  reviewedById        String?            @db.ObjectId
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -182,30 +182,24 @@ model DialogReview {
   product    Product @relation(fields: [productId], references: [id])
   reviewedBy User?   @relation("DialogReviewedBy", fields: [reviewedById], references: [id])
 
-  @@index([operatorId])
-  @@index([productId])
-  @@index([reviewedById])
-  @@index([status])
-  @@index([createdAt])
-
   @@map("dialog_reviews")
 }
 
 model Bug {
-  id               String      @id @default(cuid())
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
   title            String
-  productId        String
+  productId        String      @db.ObjectId
   module           String?
-  clientPhone      String?     // mijoz telefon raqami
-  description      String      @db.Text
-  stepsToReproduce String?     @db.Text
-  expectedResult   String?     @db.Text
-  actualResult     String?     @db.Text
+  clientPhone      String?
+  description      String
+  stepsToReproduce String?
+  expectedResult   String?
+  actualResult     String?
   priority         BugPriority @default(MEDIUM)
   status           BugStatus   @default(NEW)
   reportedByClientsCount Int  @default(1)
-  assignedToId     String?
-  createdById      String
+  assignedToId     String?     @db.ObjectId
+  createdById      String      @db.ObjectId
   deadline         DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -217,19 +211,13 @@ model Bug {
   comments    BugComment[]
   upvotes     BugUpvote[]
 
-  @@index([productId])
-  @@index([assignedToId])
-  @@index([createdById])
-  @@index([status])
-  @@index([createdAt])
-
   @@map("bugs")
 }
 
 model BugAttachment {
-  id        String   @id @default(cuid())
-  bugId     String
-  userId    String?
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bugId     String   @db.ObjectId
+  userId    String?  @db.ObjectId
   fileUrl   String
   fileName  String
   fileType  String
@@ -238,40 +226,33 @@ model BugAttachment {
   bug  Bug   @relation(fields: [bugId], references: [id], onDelete: Cascade)
   user User? @relation(fields: [userId], references: [id])
 
-  @@index([bugId])
-  @@index([userId])
-
   @@map("bug_attachments")
 }
 
 model BugComment {
-  id        String   @id @default(cuid())
-  bugId     String
-  userId    String
-  comment   String   @db.Text
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bugId     String   @db.ObjectId
+  userId    String   @db.ObjectId
+  comment   String
   createdAt DateTime @default(now())
 
   bug  Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
 
-  @@index([bugId])
-  @@index([userId])
-  @@index([createdAt])
-
   @@map("bug_comments")
 }
 
 model ImprovementRequest {
-  id                      String            @id @default(cuid())
+  id                      String            @id @default(auto()) @map("_id") @db.ObjectId
   title                   String
-  productId               String
-  description             String            @db.Text
+  productId               String            @db.ObjectId
+  description             String
   requestedByClientsCount Int               @default(0)
   source                  String?
   clientPhone             String?
-  businessValue           String?           @db.Text
+  businessValue           String?
   status                  ImprovementStatus @default(NEW)
-  createdById             String
+  createdById             String            @db.ObjectId
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
@@ -279,31 +260,24 @@ model ImprovementRequest {
   createdBy User    @relation("ImprovementCreatedBy", fields: [createdById], references: [id])
   upvotes   ImprovementUpvote[]
 
-  @@index([productId])
-  @@index([createdById])
-  @@index([status])
-  @@index([createdAt])
-
   @@map("improvement_requests")
 }
 
 model ImprovementUpvote {
-  id            String   @id @default(cuid())
-  improvementId String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  improvementId String   @db.ObjectId
   phone         String
   createdAt     DateTime @default(now())
 
   improvement ImprovementRequest @relation(fields: [improvementId], references: [id], onDelete: Cascade)
 
-  @@index([improvementId])
-
   @@map("improvement_upvotes")
 }
 
 model ServiceMonitor {
-  id                   String        @id @default(cuid())
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
   name                 String
-  productId            String?
+  productId            String?       @db.ObjectId
   url                  String
   method               String        @default("GET")
   expectedStatusCode   Int           @default(200)
@@ -319,14 +293,12 @@ model ServiceMonitor {
   logs      MonitorLog[]
   incidents Incident[]
 
-  @@index([productId])
-
   @@map("service_monitors")
 }
 
 model MonitorLog {
-  id              String        @id @default(cuid())
-  serviceMonitorId String
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  serviceMonitorId String       @db.ObjectId
   status          ServiceStatus
   responseTimeMs  Int?
   statusCode      Int?
@@ -335,47 +307,39 @@ model MonitorLog {
 
   serviceMonitor ServiceMonitor @relation(fields: [serviceMonitorId], references: [id], onDelete: Cascade)
 
-  @@index([serviceMonitorId])
-  @@index([checkedAt])
-
   @@map("monitor_logs")
 }
 
 model Incident {
-  id                String           @id @default(cuid())
-  serviceMonitorId  String?
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  serviceMonitorId  String?          @db.ObjectId
   title             String
-  description       String?          @db.Text
+  description       String?
   severity          IncidentSeverity @default(HIGH)
   status            IncidentStatus   @default(OPEN)
   startedAt         DateTime         @default(now())
   resolvedAt        DateTime?
   durationMinutes   Int?
-  rootCause         String?          @db.Text
-  responsibleUserId String?
+  rootCause         String?
+  responsibleUserId String?          @db.ObjectId
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
   serviceMonitor  ServiceMonitor? @relation(fields: [serviceMonitorId], references: [id])
   responsibleUser User?           @relation(fields: [responsibleUserId], references: [id])
 
-  @@index([serviceMonitorId])
-  @@index([responsibleUserId])
-  @@index([status])
-  @@index([createdAt])
-
   @@map("incidents")
 }
 
 model KnowledgeArticle {
-  id          String          @id @default(cuid())
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
   title       String
-  productId   String?
+  productId   String?         @db.ObjectId
   category    ArticleCategory @default(COMMON_QUESTIONS)
-  content     String          @db.Text
+  content     String
   status      ArticleStatus   @default(DRAFT)
-  createdById String
-  updatedById String?
+  createdById String          @db.ObjectId
+  updatedById String?         @db.ObjectId
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -383,20 +347,13 @@ model KnowledgeArticle {
   createdBy User     @relation("ArticleCreatedBy", fields: [createdById], references: [id])
   updatedBy User?    @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
 
-  @@index([productId])
-  @@index([createdById])
-  @@index([updatedById])
-  @@index([status])
-  @@index([category])
-  @@index([createdAt])
-
   @@map("knowledge_articles")
 }
 
 model TelegramSetting {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   botToken  String   @default("")
-  phones    String   @default("")   // comma-separated phone numbers
+  phones    String   @default("")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -405,7 +362,7 @@ model TelegramSetting {
 }
 
 model Client {
-  id                 String             @id @default(cuid())
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
   fullName           String
   phone              String
   direction          String?
@@ -414,10 +371,10 @@ model Client {
   branchCount        Int                @default(1)
   employeeCount      Int                @default(0)
   referredFrom       String?
-  note               String?            @db.Text
+  note               String?
   isActive           Boolean            @default(true)
-  createdById        String?
-  productId          String?
+  createdById        String?            @db.ObjectId
+  productId          String?            @db.ObjectId
   installationStatus InstallationStatus @default(NEW)
   bitrixStatus       BitrixStatus       @default(NOT_ADDED)
   createdAt          DateTime           @default(now())
@@ -427,38 +384,31 @@ model Client {
   product     Product? @relation(fields: [productId], references: [id])
   comments    ClientComment[]
 
-  @@index([createdAt])
-  @@index([createdById])
-  @@index([productId])
-  @@index([installationStatus])
-  @@index([bitrixStatus])
-
   @@map("clients")
 }
 
 model ClientComment {
-  id          String   @id @default(cuid())
-  clientId    String
-  text        String   @db.Text
-  createdById String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clientId    String   @db.ObjectId
+  text        String
+  createdById String   @db.ObjectId
   createdAt   DateTime @default(now())
 
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   createdBy   User     @relation(fields: [createdById], references: [id])
 
-  @@index([clientId])
   @@map("client_comments")
 }
 
 model Difficulty {
-  id               String           @id @default(cuid())
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
   title            String
-  productId        String?
+  productId        String?          @db.ObjectId
   clientPhone      String?
-  description      String           @db.Text
+  description      String
   status           DifficultyStatus @default(NEW)
   reportedByCount  Int              @default(1)
-  createdById      String
+  createdById      String           @db.ObjectId
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -466,35 +416,27 @@ model Difficulty {
   createdBy User     @relation("DifficultyCreatedBy", fields: [createdById], references: [id])
   upvotes   DifficultyUpvote[]
 
-  @@index([productId])
-  @@index([createdById])
-  @@index([status])
-  @@index([createdAt])
-
   @@map("difficulties")
 }
 
 model BugUpvote {
-  id        String   @id @default(cuid())
-  bugId     String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bugId     String   @db.ObjectId
   phone     String
   createdAt DateTime @default(now())
 
   bug Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
 
-  @@index([bugId])
   @@map("bug_upvotes")
 }
 
 model DifficultyUpvote {
-  id           String   @id @default(cuid())
-  difficultyId String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  difficultyId String   @db.ObjectId
   phone        String
   createdAt    DateTime @default(now())
 
   difficulty Difficulty @relation(fields: [difficultyId], references: [id], onDelete: Cascade)
 
-  @@index([difficultyId])
   @@map("difficulty_upvotes")
 }
-
