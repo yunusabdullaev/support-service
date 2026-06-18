@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import { User } from '@/types';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
-import { ChevronLeft, ChevronRight, Plus, X, Sun, Sunset, Moon, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Sun, Sunset, Moon, Calendar, Check } from 'lucide-react';
 
 interface ShiftAssignment {
   id: string;
@@ -86,6 +86,7 @@ export default function ShiftsPage() {
   const qc = useQueryClient();
   const [weekOffset, setWeekOffset] = useState(0);
   const [addingCell, setAddingCell] = useState<{ date: string; shift: string } | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState('');
 
   const canManage = currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'OPERATOR';
 
@@ -280,23 +281,14 @@ export default function ShiftsPage() {
                               </div>
                             ))}
 
-                            {/* Inline add dropdown */}
+                            {/* Inline add dropdown + save */}
                             {isAdding && (
-                              <div className="relative">
+                              <div className="space-y-1">
                                 <select
                                   autoFocus
                                   className="w-full text-[10px] px-1.5 py-1 bg-slate-900 border border-slate-600 rounded-md text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                  defaultValue=""
-                                  onChange={e => {
-                                    if (e.target.value) {
-                                      createMutation.mutate({
-                                        date: dateKey,
-                                        shiftType,
-                                        userId: e.target.value,
-                                      });
-                                    }
-                                  }}
-                                  onBlur={() => setAddingCell(null)}
+                                  value={selectedUserId}
+                                  onChange={e => setSelectedUserId(e.target.value)}
                                 >
                                   <option value="">Tanlang...</option>
                                   {assignableUsers
@@ -307,6 +299,35 @@ export default function ShiftsPage() {
                                       </option>
                                     ))}
                                 </select>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => {
+                                      if (selectedUserId) {
+                                        createMutation.mutate({
+                                          date: dateKey,
+                                          shiftType,
+                                          userId: selectedUserId,
+                                        });
+                                        setSelectedUserId('');
+                                      }
+                                    }}
+                                    disabled={!selectedUserId || createMutation.isPending}
+                                    className="flex-1 flex items-center justify-center gap-0.5 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[9px] font-medium rounded-md transition-colors"
+                                  >
+                                    {createMutation.isPending ? (
+                                      <div className="w-2.5 h-2.5 border border-white/40 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                      <Check className="w-2.5 h-2.5" />
+                                    )}
+                                    Saqlash
+                                  </button>
+                                  <button
+                                    onClick={() => { setAddingCell(null); setSelectedUserId(''); }}
+                                    className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-[9px] rounded-md transition-colors"
+                                  >
+                                    <X className="w-2.5 h-2.5" />
+                                  </button>
+                                </div>
                               </div>
                             )}
 
