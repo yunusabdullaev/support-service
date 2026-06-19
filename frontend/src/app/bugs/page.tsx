@@ -133,7 +133,14 @@ export default function BugsPage() {
     prevDataRef.current = { bugCount, commentCount, statusHash };
   }, [bugs, isLoading]);
 
-  const filtered = bugs.filter(b => !search || b.title.toLowerCase().includes(search.toLowerCase()));
+  const filtered = bugs
+    .filter(b => !search || b.title.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const closedStatuses = ['CLOSED', 'REJECTED'];
+      const aIsClosed = closedStatuses.includes(a.status) ? 1 : 0;
+      const bIsClosed = closedStatuses.includes(b.status) ? 1 : 0;
+      return aIsClosed - bIsClosed;
+    });
   const bugStatuses: BugStatus[] = ['NEW', 'CONFIRMED', 'IN_PROGRESS', 'WAITING', 'FIXED', 'CLOSED', 'REJECTED'];
   const bugPriorities: BugPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 
