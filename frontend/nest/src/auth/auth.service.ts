@@ -53,12 +53,17 @@ export class AuthService {
     });
   }
 
-  async updateProfile(userId: string, phone: string) {
-    // Normalize phone number
-    const normalized = phone.replace(/\D/g, '');
+  async updateProfile(userId: string, data: { phone?: string; fullName?: string }) {
+    const updateData: any = {};
+    if (data.phone) {
+      updateData.phone = data.phone.replace(/\D/g, '');
+    }
+    if (data.fullName?.trim()) {
+      updateData.fullName = data.fullName.trim();
+    }
     return this.prisma.user.update({
       where: { id: userId },
-      data: { phone: normalized },
+      data: updateData,
       select: { id: true, fullName: true, email: true, role: true, phone: true },
     });
   }

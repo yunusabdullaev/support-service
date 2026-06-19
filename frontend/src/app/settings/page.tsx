@@ -10,8 +10,80 @@ import { useTheme } from '@/lib/theme';
 import { useProduct } from '@/lib/product';
 import {
   Bot, CheckCircle2, AlertCircle, Settings2,
-  Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon, Package, Check
+  Shield, Moon, Sun, KeyRound, Eye, EyeOff, Plus, X as XIcon, Package, Check,
+  UserCircle, Edit3
 } from 'lucide-react';
+
+function ChangeNameForm() {
+  const { user, refreshUser } = useAuth();
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  const mutation = useMutation({
+    mutationFn: (name: string) => api.patch('/auth/profile', { fullName: name }),
+    onSuccess: (res) => {
+      setSuccess('Ism muvaffaqiyatli yangilandi');
+      setError('');
+      if (refreshUser) refreshUser();
+      // update localStorage
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        u.fullName = fullName.trim();
+        localStorage.setItem('user', JSON.stringify(u));
+      }
+      setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Xatolik yuz berdi');
+      setSuccess('');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim()) return;
+    mutation.mutate(fullName.trim());
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
+          <UserCircle className="w-5 h-5 text-sky-400" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-white">Ism familiya</h2>
+          <p className="text-xs text-slate-500">O'z ismingizni o'zgartiring</p>
+        </div>
+      </div>
+
+      {error && <div className="p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg">{error}</div>}
+      {success && <div className="p-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">{success}</div>}
+
+      <div>
+        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">To'liq ism</label>
+        <input
+          required
+          value={fullName}
+          onChange={e => setFullName(e.target.value)}
+          placeholder="Ism Familiya"
+          className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={mutation.isPending || fullName.trim() === user?.fullName}
+        className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <Edit3 className="w-4 h-4" />
+        {mutation.isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+      </button>
+    </form>
+  );
+}
 
 function ChangePasswordForm() {
   const { t } = useI18n();
@@ -324,6 +396,9 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Change Name */}
+            <ChangeNameForm />
 
             {/* Change Password Form */}
             <ChangePasswordForm />

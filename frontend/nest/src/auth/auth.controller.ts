@@ -28,8 +28,8 @@ export class AuthController {
 
   @Patch('profile')
   @UseGuards(AuthGuard('jwt'))
-  updateProfile(@CurrentUser() user: any, @Body() body: { phone: string }) {
-    return this.authService.updateProfile(user.id, body.phone);
+  updateProfile(@CurrentUser() user: any, @Body() body: { phone?: string; fullName?: string }) {
+    return this.authService.updateProfile(user.id, body);
   }
 
   @Patch('change-password')
