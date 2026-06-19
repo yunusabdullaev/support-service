@@ -47,6 +47,127 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend }: {
   );
 }
 
+function ProductBugChart() {
+  const { data: bugs = [] } = useQuery<any[]>({
+    queryKey: ['bugs'],
+    queryFn: () => api.get('/bugs').then(r => r.data),
+  });
+
+  if (bugs.length === 0) return null;
+
+  const days = 14;
+  const now = new Date();
+  const labels: string[] = [];
+  const dateKeys: string[] = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dateKeys.push(d.toISOString().slice(0, 10));
+    labels.push(d.toLocaleDateString('uz', { day: 'numeric', month: 'short' }));
+  }
+
+  const productMap = new Map<string, string>();
+  bugs.forEach((b: any) => { if (b.product) productMap.set(b.product.id, b.product.name); });
+  const products = Array.from(productMap.entries());
+
+  const productColors = [
+    { line: '#818cf8', bg: 'rgba(129,140,248,0.1)', dot: '#6366f1', label: 'text-indigo-400' },
+    { line: '#34d399', bg: 'rgba(52,211,153,0.1)', dot: '#10b981', label: 'text-emerald-400' },
+    { line: '#fbbf24', bg: 'rgba(251,191,36,0.1)', dot: '#f59e0b', label: 'text-amber-400' },
+    { line: '#f87171', bg: 'rgba(248,113,113,0.1)', dot: '#ef4444', label: 'text-red-400' },
+    { line: '#a78bfa', bg: 'rgba(167,139,250,0.1)', dot: '#8b5cf6', label: 'text-purple-400' },
+  ];
+
+  const productData = products.map(([pid, pname], idx) => {
+    const pBugs = bugs.filter((b: any) => b.product?.id === pid);
+    const created = dateKeys.map(key => pBugs.filter((b: any) => b.createdAt.slice(0, 10) === key).length);
+    const resolved = dateKeys.map(key =>
+      pBugs.filter((b: any) => ['FIXED', 'CLOSED'].includes(b.status) && b.updatedAt.slice(0, 10) === key).length
+    );
+    const cumCreated = created.reduce<number[]>((acc, v) => { acc.push((acc[acc.length - 1] || 0) + v); return acc; }, []);
+    return {
+      id: pid, name: pname, cumCreated,
+      totalCreated: created.reduce((a, b) => a + b, 0),
+      totalResolved: resolved.reduce((a, b) => a + b, 0),
+      color: productColors[idx % productColors.length],
+    };
+  });
+
+  const allValues = productData.flatMap(p => p.cumCreated);
+  const maxVal = Math.max(...allValues, 1);
+  const svgW = 700, svgH = 180, padL = 30, padR = 10, padT = 10, padB = 25;
+  const chartW = svgW - padL - padR, chartH = svgH - padT - padB;
+  const getX = (i: number) => padL + (i / (days - 1)) * chartW;
+  const getY = (v: number) => padT + chartH - (v / maxVal) * chartH;
+
+  const makePath = (data: number[]) =>
+    data.map((v, i) => `${i === 0 ? 'M' : 'L'}${getX(i)},${getY(v)}`).join(' ');
+  const makeArea = (data: number[]) =>
+    `${makePath(data)} L${getX(days - 1)},${getY(0)} L${getX(0)},${getY(0)} Z`;
+
+  return (
+    <div className="glass-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-slate-300">Mahsulotlar bo'yicha xatolar (14 kun)</h3>
+        <div className="flex items-center gap-4 text-[10px] text-slate-400">
+          {productData.map(p => (
+            <span key={p.id} className="flex items-center gap-1.5">
+              <span className="w-3 h-[3px] rounded-full" style={{ background: p.color.line }} />
+              {p.name}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full" style={{ maxHeight: 220 }}>
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+          <g key={i}>
+            <line x1={padL} y1={getY(maxVal * ratio)} x2={svgW - padR} y2={getY(maxVal * ratio)} stroke="#1e293b" strokeWidth="1" />
+            <text x={padL - 4} y={getY(maxVal * ratio) + 3} textAnchor="end" fontSize="8" fill="#475569">{Math.round(maxVal * ratio)}</text>
+          </g>
+        ))}
+        {labels.map((label, i) => i % 2 === 0 && (
+          <text key={i} x={getX(i)} y={svgH - 3} textAnchor="middle" fontSize="7" fill="#64748b">{label}</text>
+        ))}
+        {productData.map(p => (
+          <g key={p.id}>
+            <path d={makeArea(p.cumCreated)} fill={p.color.bg} />
+            <path d={makePath(p.cumCreated)} fill="none" stroke={p.color.line} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            {p.cumCreated.map((v, i) => (
+              <circle key={i} cx={getX(i)} cy={getY(v)} r="3" fill={p.color.dot} stroke="#0f172a" strokeWidth="1.5" opacity="0.8">
+                <title>{`${p.name} — ${labels[i]}: jami ${v} ta xato`}</title>
+              </circle>
+            ))}
+          </g>
+        ))}
+      </svg>
+
+      <div className={`grid grid-cols-${products.length} gap-3 mt-3 pt-3 border-t border-slate-800`}>
+        {productData.map(p => (
+          <div key={p.id} className="text-center p-2 bg-slate-800/30 rounded-lg">
+            <p className={`text-sm font-bold ${p.color.label}`}>{p.name}</p>
+            <div className="flex justify-center gap-4 mt-1">
+              <div>
+                <p className="text-sm font-bold text-slate-200">{p.totalCreated}</p>
+                <p className="text-[9px] text-slate-500">Yaratilgan</p>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-emerald-400">{p.totalResolved}</p>
+                <p className="text-[9px] text-slate-500">Hal qilingan</p>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-amber-400">{p.totalCreated > 0 ? Math.round((p.totalResolved / p.totalCreated) * 100) : 0}%</p>
+                <p className="text-[9px] text-slate-500">Daraja</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { t } = useI18n();
   const { selectedProductId } = useProduct();
@@ -153,6 +274,9 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Product Bug Resolution Chart */}
+        <ProductBugChart />
 
         {/* Services + Incidents */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
