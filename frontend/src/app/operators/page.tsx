@@ -28,7 +28,7 @@ export default function OperatorsPage() {
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const canEdit = currentUser?.role === 'ADMIN' || currentUser?.role === 'TEAM_LEADER';
+  const isAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'TEAM_LEADER';
 
   const { data: users = [], isLoading } = useQuery<OperatorContact[]>({
     queryKey: ['users'],
@@ -275,7 +275,7 @@ export default function OperatorsPage() {
                       </div>
 
                       {/* Actions */}
-                      {canEdit && (
+                      {(isAdmin || user.id === currentUser?.id) && (
                         <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-800">
                           {isEditing ? (
                             <>
