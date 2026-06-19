@@ -192,116 +192,187 @@ export default function BugsPage() {
           </div>
         </div>
 
-        {/* Resolution Chart */}
+        {/* Resolution Chart — per product lines */}
         {!isLoading && bugs.length > 0 && (() => {
           const days = 14;
           const now = new Date();
           const labels: string[] = [];
-          const created: number[] = [];
-          const resolved: number[] = [];
+          const dateKeys: string[] = [];
 
           for (let i = days - 1; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
+            dateKeys.push(d.toISOString().slice(0, 10));
             labels.push(d.toLocaleDateString('uz', { day: 'numeric', month: 'short' }));
-            created.push(bugs.filter(b => b.createdAt.slice(0, 10) === key).length);
-            resolved.push(bugs.filter(b =>
-              ['FIXED', 'CLOSED'].includes(b.status) &&
-              b.updatedAt.slice(0, 10) === key
-            ).length);
           }
 
-          const maxVal = Math.max(...created, ...resolved, 1);
-          const chartH = 120;
-          const barW = 100 / days;
+          // Get unique products from bugs
+          const productMap = new Map<string, string>();
+          bugs.forEach(b => {
+            if (b.product) productMap.set(b.product.id, b.product.name);
+          });
+          const products = Array.from(productMap.entries()); // [[id, name], ...]
+
+          const productColors = [
+            { line: '#818cf8', bg: 'rgba(129,140,248,0.1)', dot: '#6366f1', label: 'text-indigo-400' },
+            { line: '#34d399', bg: 'rgba(52,211,153,0.1)', dot: '#10b981', label: 'text-emerald-400' },
+            { line: '#fbbf24', bg: 'rgba(251,191,36,0.1)', dot: '#f59e0b', label: 'text-amber-400' },
+            { line: '#f87171', bg: 'rgba(248,113,113,0.1)', dot: '#ef4444', label: 'text-red-400' },
+            { line: '#a78bfa', bg: 'rgba(167,139,250,0.1)', dot: '#8b5cf6', label: 'text-purple-400' },
+          ];
+
+          // Calculate data per product
+          const productData = products.map(([pid, pname], idx) => {
+            const productBugs = bugs.filter(b => b.product?.id === pid);
+            const created = dateKeys.map(key =>
+              productBugs.filter(b => b.createdAt.slice(0, 10) === key).length
+            );
+            const resolved = dateKeys.map(key =>
+              productBugs.filter(b =>
+                ['FIXED', 'CLOSED'].includes(b.status) &&
+                b.updatedAt.slice(0, 10) === key
+              ).length
+            );
+            // Cumulative unresolved: running total of created - resolved
+            const cumCreated = created.reduce<number[]>((acc, v) => {
+              acc.push((acc[acc.length - 1] || 0) + v);
+              return acc;
+            }, []);
+            const cumResolved = resolved.reduce<number[]>((acc, v) => {
+              acc.push((acc[acc.length - 1] || 0) + v);
+              return acc;
+            }, []);
+
+            return {
+              id: pid,
+              name: pname,
+              created,
+              resolved,
+              cumCreated,
+              cumResolved,
+              totalCreated: created.reduce((a, b) => a + b, 0),
+              totalResolved: resolved.reduce((a, b) => a + b, 0),
+              color: productColors[idx % productColors.length],
+            };
+          });
+
+          // Max value for Y axis
+          const allValues = productData.flatMap(p => p.cumCreated);
+          const maxVal = Math.max(...allValues, 1);
+
+          const svgW = 700;
+          const svgH = 160;
+          const padL = 30;
+          const padR = 10;
+          const padT = 10;
+          const padB = 25;
+          const chartW = svgW - padL - padR;
+          const chartH = svgH - padT - padB;
+
+          const getX = (i: number) => padL + (i / (days - 1)) * chartW;
+          const getY = (v: number) => padT + chartH - (v / maxVal) * chartH;
+
+          const makePath = (data: number[]) => {
+            return data.map((v, i) => {
+              const x = getX(i);
+              const y = getY(v);
+              return i === 0 ? `M${x},${y}` : `L${x},${y}`;
+            }).join(' ');
+          };
+
+          const makeAreaPath = (data: number[]) => {
+            const line = data.map((v, i) => {
+              const x = getX(i);
+              const y = getY(v);
+              return i === 0 ? `M${x},${y}` : `L${x},${y}`;
+            }).join(' ');
+            return `${line} L${getX(days - 1)},${getY(0)} L${getX(0)},${getY(0)} Z`;
+          };
 
           return (
             <div className="glass-card p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Xatolar hal qilinish grafigi (14 kun)
+                  Mahsulotlar bo'yicha xatolar grafigi (14 kun)
                 </h3>
-                <div className="flex items-center gap-4 text-[10px]">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500"></span>
-                    Yaratilgan
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
-                    Hal qilingan
-                  </span>
+                <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                  {productData.map(p => (
+                    <span key={p.id} className="flex items-center gap-1.5">
+                      <span className="w-3 h-[3px] rounded-full" style={{ background: p.color.line }}></span>
+                      {p.name}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="relative" style={{ height: chartH + 28 }}>
-                {/* Y-axis lines */}
+              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full" style={{ maxHeight: 200 }}>
+                {/* Grid lines */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
-                  <div
-                    key={i}
-                    className="absolute left-0 right-0 border-t border-slate-800"
-                    style={{ top: chartH * (1 - ratio) }}
-                  >
-                    <span className="absolute -left-1 -top-2 text-[9px] text-slate-600 -translate-x-full pr-1">
+                  <g key={i}>
+                    <line
+                      x1={padL} y1={getY(maxVal * ratio)}
+                      x2={svgW - padR} y2={getY(maxVal * ratio)}
+                      stroke="#1e293b" strokeWidth="1"
+                    />
+                    <text x={padL - 4} y={getY(maxVal * ratio) + 3}
+                      textAnchor="end" fontSize="8" fill="#475569">
                       {Math.round(maxVal * ratio)}
-                    </span>
-                  </div>
+                    </text>
+                  </g>
                 ))}
 
-                {/* Bars */}
-                <div className="flex items-end h-full pl-6" style={{ height: chartH }}>
-                  {labels.map((label, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center group relative">
-                      <div className="w-full flex items-end justify-center gap-[1px] px-[2px]">
-                        <div
-                          className="flex-1 max-w-[12px] bg-indigo-500/80 rounded-t-sm transition-all duration-300 hover:bg-indigo-400"
-                          style={{ height: (created[i] / maxVal) * chartH || 1 }}
-                          title={`Yaratilgan: ${created[i]}`}
-                        />
-                        <div
-                          className="flex-1 max-w-[12px] bg-emerald-500/80 rounded-t-sm transition-all duration-300 hover:bg-emerald-400"
-                          style={{ height: (resolved[i] / maxVal) * chartH || 1 }}
-                          title={`Hal qilingan: ${resolved[i]}`}
-                        />
-                      </div>
-                      {/* Tooltip */}
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 px-2 py-1 rounded text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-lg">
-                        {label}: {created[i]} yaratilgan, {resolved[i]} hal qilingan
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
                 {/* X-axis labels */}
-                <div className="flex pl-6 mt-1">
-                  {labels.map((label, i) => (
-                    <div key={i} className="flex-1 text-center">
-                      <span className={`text-[8px] ${i % 2 === 0 ? 'text-slate-500' : 'text-transparent'}`}>
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                {labels.map((label, i) => (
+                  i % 2 === 0 && (
+                    <text key={i} x={getX(i)} y={svgH - 3}
+                      textAnchor="middle" fontSize="7" fill="#64748b">
+                      {label}
+                    </text>
+                  )
+                ))}
 
-              {/* Summary */}
-              <div className="flex gap-4 mt-3 pt-3 border-t border-slate-800">
-                <div className="flex-1 text-center">
-                  <p className="text-lg font-bold text-indigo-400">{created.reduce((a, b) => a + b, 0)}</p>
-                  <p className="text-[10px] text-slate-500">Yaratilgan (14 kun)</p>
-                </div>
-                <div className="flex-1 text-center">
-                  <p className="text-lg font-bold text-emerald-400">{resolved.reduce((a, b) => a + b, 0)}</p>
-                  <p className="text-[10px] text-slate-500">Hal qilingan (14 kun)</p>
-                </div>
-                <div className="flex-1 text-center">
-                  <p className="text-lg font-bold text-amber-400">
-                    {created.reduce((a, b) => a + b, 0) > 0
-                      ? Math.round((resolved.reduce((a, b) => a + b, 0) / created.reduce((a, b) => a + b, 0)) * 100)
-                      : 0}%
-                  </p>
-                  <p className="text-[10px] text-slate-500">Hal qilinish darajasi</p>
-                </div>
+                {/* Product lines — area + line + dots */}
+                {productData.map(p => (
+                  <g key={p.id}>
+                    {/* Area fill */}
+                    <path d={makeAreaPath(p.cumCreated)} fill={p.color.bg} />
+                    {/* Line */}
+                    <path d={makePath(p.cumCreated)} fill="none"
+                      stroke={p.color.line} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                    {/* Dots */}
+                    {p.cumCreated.map((v, i) => (
+                      <circle key={i} cx={getX(i)} cy={getY(v)} r="3"
+                        fill={p.color.dot} stroke="#0f172a" strokeWidth="1.5" opacity="0.8">
+                        <title>{`${p.name} — ${labels[i]}: jami ${v} ta xato`}</title>
+                      </circle>
+                    ))}
+                  </g>
+                ))}
+              </svg>
+
+              {/* Per-product summary */}
+              <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-800">
+                {productData.map(p => (
+                  <div key={p.id} className="text-center p-2 bg-slate-800/30 rounded-lg">
+                    <p className={`text-sm font-bold ${p.color.label}`}>{p.name}</p>
+                    <div className="flex justify-center gap-4 mt-1">
+                      <div>
+                        <p className="text-sm font-bold text-slate-200">{p.totalCreated}</p>
+                        <p className="text-[9px] text-slate-500">Yaratilgan</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-emerald-400">{p.totalResolved}</p>
+                        <p className="text-[9px] text-slate-500">Hal qilingan</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-amber-400">
+                          {p.totalCreated > 0 ? Math.round((p.totalResolved / p.totalCreated) * 100) : 0}%
+                        </p>
+                        <p className="text-[9px] text-slate-500">Daraja</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           );
