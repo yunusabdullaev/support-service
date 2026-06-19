@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import { User } from '@/types';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
-import { ChevronLeft, ChevronRight, Plus, X, Sun, Sunset, Moon, Calendar, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Sun, Sunset, Moon, Calendar, Check, CalendarPlus } from 'lucide-react';
 
 interface ShiftAssignment {
   id: string;
@@ -87,6 +87,11 @@ export default function ShiftsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [addingCell, setAddingCell] = useState<{ date: string; shift: string } | null>(null);
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkUserId, setBulkUserId] = useState('');
+  const [bulkShift, setBulkShift] = useState<'MORNING' | 'EVENING' | 'NIGHT'>('MORNING');
+  const [bulkDays, setBulkDays] = useState<string[]>([]);
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const canManage = currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'OPERATOR';
 
@@ -168,8 +173,17 @@ export default function ShiftsPage() {
             </div>
           </div>
 
-          {/* Week navigation */}
+          {/* Bulk add + Week navigation */}
           <div className="flex items-center gap-2">
+            {canManage && (
+              <button
+                onClick={() => { setShowBulkModal(true); setBulkDays([]); setBulkUserId(''); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-lg transition-colors"
+              >
+                <CalendarPlus className="w-3.5 h-3.5" />
+                Tezkor qo'shish
+              </button>
+            )}
             <button
               onClick={() => setWeekOffset(o => o - 1)}
               className="p-2 hover:bg-slate-800/60 rounded-lg text-slate-400 hover:text-white transition-colors"
@@ -362,6 +376,146 @@ export default function ShiftsPage() {
           })}
         </div>
       </div>
+
+        {/* Bulk Add Modal */}
+        {showBulkModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-[420px] space-y-5 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarPlus className="w-5 h-5 text-emerald-400" />
+                  <h2 className="text-lg font-bold text-white">Tezkor qo'shish</h2>
+                </div>
+                <button
+                  onClick={() => setShowBulkModal(false)}
+                  className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Xodim tanlash */}
+              <div>
+                <label className="text-xs text-slate-400 mb-1.5 block">Xodim</label>
+                <select
+                  value={bulkUserId}
+                  onChange={e => setBulkUserId(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Tanlang...</option>
+                  {assignableUsers.map(u => (
+                    <option key={u.id} value={u.id}>{u.fullName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Smen tanlash */}
+              <div>
+                <label className="text-xs text-slate-400 mb-1.5 block">Smen</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {SHIFT_TYPES.map(type => {
+                    const config = SHIFT_CONFIG[type];
+                    const Icon = config.icon;
+                    const isSelected = bulkShift === type;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setBulkShift(type)}
+                        className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg border transition-all ${
+                          isSelected
+                            ? `${config.bg} ${config.border} ${config.text} ring-1 ring-current`
+                            : 'border-slate-700 text-slate-500 hover:border-slate-600'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="text-[10px] font-medium">{config.label}</span>
+                        <span className="text-[9px] opacity-70">{config.time}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Kunlar tanlash */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs text-slate-400">Kunlar</label>
+                  <button
+                    onClick={() => {
+                      if (bulkDays.length === 7) setBulkDays([]);
+                      else setBulkDays(weekDates.map(d => formatDateKey(d)));
+                    }}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                  >
+                    {bulkDays.length === 7 ? 'Barchasini olib tashlash' : 'Barchasini tanlash'}
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {weekDates.map((date, idx) => {
+                    const dk = formatDateKey(date);
+                    const isSelected = bulkDays.includes(dk);
+                    return (
+                      <button
+                        key={dk}
+                        onClick={() => {
+                          setBulkDays(prev =>
+                            isSelected ? prev.filter(d => d !== dk) : [...prev, dk]
+                          );
+                        }}
+                        className={`flex flex-col items-center py-2 rounded-lg border transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                            : 'border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400'
+                        }`}
+                      >
+                        <span className="text-[10px] font-medium">{DAY_NAMES[idx]}</span>
+                        <span className="text-sm font-bold mt-0.5">{date.getDate()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Saqlash */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={async () => {
+                    if (!bulkUserId || bulkDays.length === 0) return;
+                    setBulkSaving(true);
+                    try {
+                      await Promise.all(
+                        bulkDays.map(date =>
+                          api.post('/shifts', { date, shiftType: bulkShift, userId: bulkUserId })
+                        )
+                      );
+                      qc.invalidateQueries({ queryKey: ['shifts'] });
+                      setShowBulkModal(false);
+                    } catch (e) {
+                      console.error(e);
+                    } finally {
+                      setBulkSaving(false);
+                    }
+                  }}
+                  disabled={!bulkUserId || bulkDays.length === 0 || bulkSaving}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  {bulkSaving ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  {bulkSaving ? 'Saqlanmoqda...' : `Saqlash (${bulkDays.length} kun)`}
+                </button>
+                <button
+                  onClick={() => setShowBulkModal(false)}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition-colors"
+                >
+                  Bekor
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </AppLayout>
   );
 }
