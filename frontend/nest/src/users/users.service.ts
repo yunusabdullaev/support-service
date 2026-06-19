@@ -26,7 +26,7 @@ export class UsersService {
         role: true,
         isActive: true,
         createdAt: true,
-      },
+      } as any,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -48,7 +48,7 @@ export class UsersService {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-      },
+      } as any,
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
@@ -95,8 +95,12 @@ export class UsersService {
         email: true,
         role: true,
         isActive: true,
+        personalPhone: true,
+        corporatePhone: true,
+        personalTelegram: true,
+        corporateTelegram: true,
         updatedAt: true,
-      },
+      } as any,
     });
   }
 
