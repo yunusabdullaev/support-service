@@ -192,6 +192,121 @@ export default function BugsPage() {
           </div>
         </div>
 
+        {/* Resolution Chart */}
+        {!isLoading && bugs.length > 0 && (() => {
+          const days = 14;
+          const now = new Date();
+          const labels: string[] = [];
+          const created: number[] = [];
+          const resolved: number[] = [];
+
+          for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            labels.push(d.toLocaleDateString('uz', { day: 'numeric', month: 'short' }));
+            created.push(bugs.filter(b => b.createdAt.slice(0, 10) === key).length);
+            resolved.push(bugs.filter(b =>
+              ['FIXED', 'CLOSED'].includes(b.status) &&
+              b.updatedAt.slice(0, 10) === key
+            ).length);
+          }
+
+          const maxVal = Math.max(...created, ...resolved, 1);
+          const chartH = 120;
+          const barW = 100 / days;
+
+          return (
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Xatolar hal qilinish grafigi (14 kun)
+                </h3>
+                <div className="flex items-center gap-4 text-[10px]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500"></span>
+                    Yaratilgan
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+                    Hal qilingan
+                  </span>
+                </div>
+              </div>
+
+              <div className="relative" style={{ height: chartH + 28 }}>
+                {/* Y-axis lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+                  <div
+                    key={i}
+                    className="absolute left-0 right-0 border-t border-slate-800"
+                    style={{ top: chartH * (1 - ratio) }}
+                  >
+                    <span className="absolute -left-1 -top-2 text-[9px] text-slate-600 -translate-x-full pr-1">
+                      {Math.round(maxVal * ratio)}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Bars */}
+                <div className="flex items-end h-full pl-6" style={{ height: chartH }}>
+                  {labels.map((label, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center group relative">
+                      <div className="w-full flex items-end justify-center gap-[1px] px-[2px]">
+                        <div
+                          className="flex-1 max-w-[12px] bg-indigo-500/80 rounded-t-sm transition-all duration-300 hover:bg-indigo-400"
+                          style={{ height: (created[i] / maxVal) * chartH || 1 }}
+                          title={`Yaratilgan: ${created[i]}`}
+                        />
+                        <div
+                          className="flex-1 max-w-[12px] bg-emerald-500/80 rounded-t-sm transition-all duration-300 hover:bg-emerald-400"
+                          style={{ height: (resolved[i] / maxVal) * chartH || 1 }}
+                          title={`Hal qilingan: ${resolved[i]}`}
+                        />
+                      </div>
+                      {/* Tooltip */}
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 px-2 py-1 rounded text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-lg">
+                        {label}: {created[i]} yaratilgan, {resolved[i]} hal qilingan
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* X-axis labels */}
+                <div className="flex pl-6 mt-1">
+                  {labels.map((label, i) => (
+                    <div key={i} className="flex-1 text-center">
+                      <span className={`text-[8px] ${i % 2 === 0 ? 'text-slate-500' : 'text-transparent'}`}>
+                        {label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="flex gap-4 mt-3 pt-3 border-t border-slate-800">
+                <div className="flex-1 text-center">
+                  <p className="text-lg font-bold text-indigo-400">{created.reduce((a, b) => a + b, 0)}</p>
+                  <p className="text-[10px] text-slate-500">Yaratilgan (14 kun)</p>
+                </div>
+                <div className="flex-1 text-center">
+                  <p className="text-lg font-bold text-emerald-400">{resolved.reduce((a, b) => a + b, 0)}</p>
+                  <p className="text-[10px] text-slate-500">Hal qilingan (14 kun)</p>
+                </div>
+                <div className="flex-1 text-center">
+                  <p className="text-lg font-bold text-amber-400">
+                    {created.reduce((a, b) => a + b, 0) > 0
+                      ? Math.round((resolved.reduce((a, b) => a + b, 0) / created.reduce((a, b) => a + b, 0)) * 100)
+                      : 0}%
+                  </p>
+                  <p className="text-[10px] text-slate-500">Hal qilinish darajasi</p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
