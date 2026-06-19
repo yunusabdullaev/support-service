@@ -94,6 +94,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const getImageSrc = (fileUrl: string) => fileUrl.startsWith('data:') ? fileUrl : `${API_URL}${fileUrl}`;
 
   const handleUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -391,10 +392,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ id: string
                   {bug.attachments.map(a => (
                     <div key={a.id} className="relative group aspect-video rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-indigo-500 transition-colors">
                       <img
-                        src={`${API_URL}${a.fileUrl}`}
+                        src={getImageSrc(a.fileUrl)}
                         alt={a.fileName}
                         className="w-full h-full object-cover cursor-zoom-in bg-white"
-                        onClick={() => setLightboxSrc(`${API_URL}${a.fileUrl}`)}
+                        onClick={() => setLightboxSrc(getImageSrc(a.fileUrl))}
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-none">

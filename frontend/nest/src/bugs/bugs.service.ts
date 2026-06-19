@@ -203,11 +203,14 @@ export class BugsService {
 
   async addAttachment(bugId: string, userId: string, file: any) {
     await this.findOne(bugId);
+    // Convert file buffer to base64 data URL for serverless storage
+    const base64 = file.buffer.toString('base64');
+    const dataUrl = `data:${file.mimetype};base64,${base64}`;
     const attachment = await this.prisma.bugAttachment.create({
       data: {
         bugId,
         userId,
-        fileUrl: `/uploads/${file.filename}`,
+        fileUrl: dataUrl,
         fileName: file.originalname,
         fileType: file.mimetype,
       },
@@ -223,11 +226,6 @@ export class BugsService {
   async deleteAttachment(attachmentId: string) {
     const a = await this.prisma.bugAttachment.findUnique({ where: { id: attachmentId } });
     if (!a) throw new Error('Attachment not found');
-    // Delete file from disk if it exists
-    const fs = require('fs');
-    const path = require('path');
-    const filePath = path.join(process.cwd(), 'uploads', path.basename(a.fileUrl));
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     const deleted = await this.prisma.bugAttachment.delete({ where: { id: attachmentId } });
     await this.prisma.bug.update({
       where: { id: a.bugId },

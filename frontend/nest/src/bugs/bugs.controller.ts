@@ -99,7 +99,7 @@ export class BugsController {
   }
 
   @Post(':id/attachments')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { storage: require('multer').memoryStorage() }))
   addAttachment(
     @Param('id') id: string,
     @UploadedFile() file: any,
