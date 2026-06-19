@@ -46,7 +46,7 @@ export class UsersController {
     @CurrentUser() user: any,
     @Body() body: { personalPhone?: string; corporatePhone?: string; personalTelegram?: string; corporateTelegram?: string },
   ) {
-    return this.usersService.update(user.sub, {
+    return this.usersService.update(user.id, {
       personalPhone: body.personalPhone,
       corporatePhone: body.corporatePhone,
       personalTelegram: body.personalTelegram,
@@ -62,7 +62,7 @@ export class UsersController {
     @CurrentUser() user: any,
   ) {
     // OPERATOR faqat o'zini tahrirlaydi
-    if (user.role === 'OPERATOR' && user.sub !== id) {
+    if (user.role === 'OPERATOR' && user.id !== id) {
       throw new ForbiddenException('Siz faqat o\'z ma\'lumotlaringizni tahrirlashingiz mumkin');
     }
     // OPERATOR faqat kontakt ma'lumotlarini o'zgartirishi mumkin
