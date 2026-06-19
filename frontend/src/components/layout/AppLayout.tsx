@@ -1,6 +1,6 @@
 'use client';
 
-import { Sidebar } from '@/components/layout/Sidebar';
+import { Sidebar, SidebarProvider } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -32,16 +32,18 @@ export function AppLayout({ children, allowedRoles }: { children: React.ReactNod
   if (!user || (allowedRoles && !allowedRoles.includes(user.role))) return null;
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      <Sidebar />
-      <div className="flex-1 ml-64">
-        <Navbar />
-        <main className="pt-16 min-h-screen">
-          <div className="p-6">
-            {children}
-          </div>
-        </main>
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-slate-950">
+        <Sidebar />
+        <div className="flex-1 lg:ml-64">
+          <Navbar />
+          <main className="pt-16 min-h-screen">
+            <div className="p-3 sm:p-6">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

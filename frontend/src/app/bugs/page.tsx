@@ -13,7 +13,8 @@ import { useAuth } from '@/lib/auth';
 import { useProduct } from '@/lib/product';
 import {
   Plus, Search, Clock, Bug as BugIcon, Download,
-  UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare, Phone
+  UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare, Phone,
+  LayoutGrid, List
 } from 'lucide-react';
 import Link from 'next/link';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -33,6 +34,7 @@ export default function BugsPage() {
   const [undoId, setUndoId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editBug, setEditBug] = useState<Bug | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const qc = useQueryClient();
 
@@ -153,6 +155,23 @@ export default function BugsPage() {
             <p className="text-slate-400 text-sm mt-0.5">{bugs.length} {t('total_bugs')}</p>
           </div>
           <div className="flex gap-2">
+            {/* View toggle */}
+            <div className="flex bg-slate-800/60 rounded-lg border border-slate-700 p-0.5">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                title="Ro'yxat"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                title="Kanban"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+            </div>
             {(user?.role === 'TEAM_LEADER' || user?.role === 'ADMIN') && (
               <button
                 onClick={handleExportExcel}
@@ -192,7 +211,86 @@ export default function BugsPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Kanban View */}
+        {viewMode === 'kanban' && !isLoading && (
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-3 min-w-max">
+              {bugStatuses.map(status => {
+                const statusBugs = filtered.filter(b => b.status === status);
+                const STATUS_COLORS: Record<string, string> = {
+                  NEW: 'border-t-blue-500',
+                  CONFIRMED: 'border-t-cyan-500',
+                  IN_PROGRESS: 'border-t-amber-500',
+                  WAITING: 'border-t-orange-500',
+                  FIXED: 'border-t-emerald-500',
+                  CLOSED: 'border-t-slate-500',
+                  REJECTED: 'border-t-red-500',
+                };
+                const STATUS_LABELS: Record<string, string> = {
+                  NEW: 'Yangi',
+                  CONFIRMED: 'Tasdiqlangan',
+                  IN_PROGRESS: 'Jarayonda',
+                  WAITING: 'Kutmoqda',
+                  FIXED: 'Tuzatildi',
+                  CLOSED: 'Yopildi',
+                  REJECTED: 'Rad etildi',
+                };
+                return (
+                  <div key={status} className={`w-60 sm:w-72 flex-shrink-0 glass-card rounded-xl border-t-2 ${STATUS_COLORS[status] || 'border-t-slate-600'}`}>
+                    <div className="p-3 border-b border-slate-800 flex items-center justify-between">
+                      <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                        {STATUS_LABELS[status] || status}
+                      </h3>
+                      <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">
+                        {statusBugs.length}
+                      </span>
+                    </div>
+                    <div className="p-2 space-y-2 max-h-[65vh] overflow-y-auto">
+                      {statusBugs.length === 0 && (
+                        <p className="text-xs text-slate-600 text-center py-4">Bo'sh</p>
+                      )}
+                      {statusBugs.map(bug => (
+                        <Link
+                          key={bug.id}
+                          href={`/bugs/${bug.id}`}
+                          className="block p-3 bg-slate-800/50 hover:bg-slate-800/80 rounded-lg border border-slate-700/50 hover:border-indigo-500/40 transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <PriorityBadge priority={bug.priority} />
+                            {bug.product && <ProductBadge name={bug.product.name} />}
+                          </div>
+                          <p className="text-sm text-slate-200 font-medium leading-tight group-hover:text-white transition-colors line-clamp-2">
+                            {bug.title}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-[10px] text-slate-500">
+                              {bug.createdBy?.fullName}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {(bug._count?.comments || 0) > 0 && (
+                                <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
+                                  <MessageSquare className="w-2.5 h-2.5" />{bug._count?.comments}
+                                </span>
+                              )}
+                              {(bug.upvoteCount || 0) > 0 && (
+                                <span className="text-[10px] text-emerald-500 flex items-center gap-0.5">
+                                  <Phone className="w-2.5 h-2.5" />{bug.upvoteCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* List View */}
+        {viewMode === 'list' && <div className="space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -337,7 +435,7 @@ export default function BugsPage() {
                 );
               })
           )}
-        </div>
+        </div>}
       </div>
 
       {/* Delete Confirm Modal */}
