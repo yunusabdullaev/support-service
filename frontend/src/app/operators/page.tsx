@@ -194,15 +194,18 @@ export default function OperatorsPage() {
                               <Phone className="w-3 h-3" /> Telefon
                             </label>
                             {isEditing ? (
-                              <input
-                                value={editData.personalPhone}
-                                onChange={e => setEditData({ ...editData, personalPhone: e.target.value })}
-                                placeholder="+998 XX XXX XX XX"
-                                className="w-full px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                              />
+                              <div className="flex">
+                                <span className="inline-flex items-center px-2.5 py-1.5 bg-slate-700 border border-r-0 border-slate-600 rounded-l-lg text-sm text-slate-400 select-none">+998</span>
+                                <input
+                                  value={editData.personalPhone}
+                                  onChange={e => setEditData({ ...editData, personalPhone: e.target.value.replace(/[^0-9]/g, '').slice(0, 9) })}
+                                  placeholder="XX XXX XX XX"
+                                  className="w-full px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-r-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                />
+                              </div>
                             ) : (
                               <p className={`text-sm ${user.personalPhone ? 'text-slate-200' : 'text-slate-600 italic'}`}>
-                                {user.personalPhone || 'Kiritilmagan'}
+                                {user.personalPhone ? `+998 ${user.personalPhone}` : 'Kiritilmagan'}
                               </p>
                             )}
                           </div>
@@ -240,15 +243,18 @@ export default function OperatorsPage() {
                               <Phone className="w-3 h-3" /> Telefon
                             </label>
                             {isEditing ? (
-                              <input
-                                value={editData.corporatePhone}
-                                onChange={e => setEditData({ ...editData, corporatePhone: e.target.value })}
-                                placeholder="+998 XX XXX XX XX"
-                                className="w-full px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                              />
+                              <div className="flex">
+                                <span className="inline-flex items-center px-2.5 py-1.5 bg-slate-700 border border-r-0 border-slate-600 rounded-l-lg text-sm text-slate-400 select-none">+998</span>
+                                <input
+                                  value={editData.corporatePhone}
+                                  onChange={e => setEditData({ ...editData, corporatePhone: e.target.value.replace(/[^0-9]/g, '').slice(0, 9) })}
+                                  placeholder="XX XXX XX XX"
+                                  className="w-full px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-r-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                />
+                              </div>
                             ) : (
                               <p className={`text-sm ${user.corporatePhone ? 'text-slate-200' : 'text-slate-600 italic'}`}>
-                                {user.corporatePhone || 'Kiritilmagan'}
+                                {user.corporatePhone ? `+998 ${user.corporatePhone}` : 'Kiritilmagan'}
                               </p>
                             )}
                           </div>
