@@ -17,6 +17,7 @@ import { TelegramModule } from './telegram/telegram.module';
 import { SettingsModule } from './settings/settings.module';
 import { ClientsModule } from './clients/clients.module';
 import { DifficultiesModule } from './difficulties/difficulties.module';
+import { ShiftsModule } from './shifts/shifts.module';
 import { memoryStorage } from 'multer';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -44,6 +45,7 @@ import { AppService } from './app.service';
     SettingsModule,
     ClientsModule,
     DifficultiesModule,
+    ShiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
