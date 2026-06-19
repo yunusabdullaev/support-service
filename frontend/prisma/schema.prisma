@@ -120,6 +120,10 @@ model User {
   email        String   @unique
   phone        String?
   telegramChatId String?
+  personalPhone     String?
+  corporatePhone    String?
+  personalTelegram  String?
+  corporateTelegram String?
   passwordHash String
   role         Role     @default(OPERATOR)
   isActive     Boolean  @default(true)

@@ -43,4 +43,20 @@ export class UpdateUserDto {
 
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  personalPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  corporatePhone?: string;
+
+  @IsString()
+  @IsOptional()
+  personalTelegram?: string;
+
+  @IsString()
+  @IsOptional()
+  corporateTelegram?: string;
 }
