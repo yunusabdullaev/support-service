@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { DifficultyStatus } from '@prisma/client';
 
 export class CreateDifficultyDto {
@@ -19,7 +20,10 @@ export class UpdateDifficultyDto {
 
 @Injectable()
 export class DifficultiesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private telegramService: TelegramService,
+  ) {}
 
   findAll(filters?: {
     productId?: string;
@@ -54,8 +58,8 @@ export class DifficultiesService {
     return item;
   }
 
-  create(dto: CreateDifficultyDto, createdById: string) {
-    return this.prisma.difficulty.create({
+  async create(dto: CreateDifficultyDto, createdById: string) {
+    const difficulty = await this.prisma.difficulty.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -68,6 +72,15 @@ export class DifficultiesService {
         createdBy: { select: { id: true, fullName: true, role: true } },
       },
     });
+
+    // Telegram xabar (fire-and-forget)
+    this.telegramService.sendDifficultyCreated({
+      title: difficulty.title,
+      productName: difficulty.product?.name || 'Umumiy',
+      createdByName: difficulty.createdBy?.fullName || 'Noma\'lum',
+    }).catch(() => {});
+
+    return difficulty;
   }
 
   async update(id: string, dto: UpdateDifficultyDto, userId: string, userRole: string) {

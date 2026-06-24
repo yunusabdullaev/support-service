@@ -4,9 +4,11 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { BugsController } from './bugs.controller';
 import { BugsService } from './bugs.service';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
   imports: [
+    TelegramModule,
     MulterModule.register({
       storage: diskStorage({
         destination: join(process.cwd(), 'uploads'),

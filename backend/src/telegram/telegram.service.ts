@@ -13,8 +13,8 @@ export class TelegramService {
   }
 
   /**
-   * Send message to all configured phone numbers.
-   * Resolves phone → User.telegramChatId → sends via Bot API.
+   * Send message to all configured Telegram chat IDs.
+   * Chat IDs are stored directly in TelegramSetting.phones field.
    */
   async sendMessage(text: string): Promise<boolean> {
     const settings = await this.getSettings();
@@ -25,37 +25,19 @@ export class TelegramService {
       return false;
     }
 
-    // Parse phone list
-    const phones = (settings?.phones || '')
+    // Parse chat ID list (stored in phones field)
+    const chatIds = (settings?.phones || '')
       .split(',')
       .map(p => p.trim())
       .filter(Boolean);
 
-    if (phones.length === 0) {
-      this.logger.warn('Telegram: telefon raqamlar sozlanmagan');
-      return false;
-    }
-
-    // Resolve phone numbers to telegramChatId via User table
-    const users = await this.prisma.user.findMany({
-      where: {
-        phone: { in: phones },
-        telegramChatId: { not: null },
-        isActive: true,
-      },
-      select: { phone: true, telegramChatId: true, fullName: true },
-    });
-
-    if (users.length === 0) {
-      this.logger.warn(
-        `Telegram: raqamlar topildi lekin hech birida chatId yo'q (${phones.join(', ')}). ` +
-        `Hodimlar sahifasidan ularning Telegram Chat ID'sini kiriting.`
-      );
+    if (chatIds.length === 0) {
+      this.logger.warn('Telegram: chat ID lar sozlanmagan');
       return false;
     }
 
     const results = await Promise.all(
-      users.map(u => this.sendTelegramMessage(token, u.telegramChatId!, text))
+      chatIds.map(chatId => this.sendTelegramMessage(token, chatId, text))
     );
     return results.some(r => r);
   }
@@ -130,6 +112,107 @@ export class TelegramService {
       `Davomiyligi: <b>${incident.durationMinutes ?? '?'} daqiqa</b>\n` +
       `Sabab: ${incident.rootCause || 'Tekshirilmoqda'}\n` +
       `Status: <b>Hal qilindi</b>`
+    );
+  }
+
+  // ==================== BUGS ====================
+
+  async sendBugCreated(bug: {
+    title: string;
+    productName: string;
+    priority: string;
+    createdByName: string;
+  }) {
+    const time = new Date().toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return this.sendMessage(
+      `🐛 <b>YANGI BUG</b>\n` +
+      `Mahsulot: <b>${bug.productName}</b>\n` +
+      `Nomi: <b>${bug.title}</b>\n` +
+      `Prioritet: <b>${bug.priority}</b>\n` +
+      `Muallif: <b>${bug.createdByName}</b>\n` +
+      `Vaqt: <b>${time}</b>`
+    );
+  }
+
+  async sendBugStatusChanged(bug: {
+    title: string;
+    productName: string;
+    oldStatus: string;
+    newStatus: string;
+  }) {
+    return this.sendMessage(
+      `📋 <b>BUG STATUS O'ZGARDI</b>\n` +
+      `Mahsulot: <b>${bug.productName}</b>\n` +
+      `Nomi: <b>${bug.title}</b>\n` +
+      `${bug.oldStatus} ➜ <b>${bug.newStatus}</b>`
+    );
+  }
+
+  // ==================== IMPROVEMENTS ====================
+
+  async sendImprovementCreated(improvement: {
+    title: string;
+    productName: string;
+    createdByName: string;
+  }) {
+    return this.sendMessage(
+      `💡 <b>YANGI TAKLIF</b>\n` +
+      `Mahsulot: <b>${improvement.productName}</b>\n` +
+      `Nomi: <b>${improvement.title}</b>\n` +
+      `Muallif: <b>${improvement.createdByName}</b>`
+    );
+  }
+
+  // ==================== DIFFICULTIES ====================
+
+  async sendDifficultyCreated(difficulty: {
+    title: string;
+    productName: string;
+    createdByName: string;
+  }) {
+    return this.sendMessage(
+      `⚠️ <b>YANGI QIYINCHILIK</b>\n` +
+      `Mahsulot: <b>${difficulty.productName}</b>\n` +
+      `Nomi: <b>${difficulty.title}</b>\n` +
+      `Muallif: <b>${difficulty.createdByName}</b>`
+    );
+  }
+
+  // ==================== DIALOG REVIEWS ====================
+
+  async sendDialogReviewCreated(review: {
+    operatorName: string;
+    totalScore: number;
+    reviewerName: string;
+  }) {
+    return this.sendMessage(
+      `📞 <b>DIALOG BAHOLANDI</b>\n` +
+      `Operator: <b>${review.operatorName}</b>\n` +
+      `Ball: <b>${review.totalScore}/50</b>\n` +
+      `Baholovchi: <b>${review.reviewerName}</b>`
+    );
+  }
+
+  // ==================== SHIFTS ====================
+
+  async sendShiftAssigned(shift: {
+    userName: string;
+    date: string;
+    shiftType: string;
+  }) {
+    const shiftLabels: Record<string, string> = {
+      MORNING: 'Ertalabki',
+      EVENING: 'Kechki',
+      NIGHT: 'Tungi',
+    };
+    return this.sendMessage(
+      `📅 <b>SMENA TAYINLANDI</b>\n` +
+      `Hodim: <b>${shift.userName}</b>\n` +
+      `Sana: <b>${shift.date}</b>\n` +
+      `Smena: <b>${shiftLabels[shift.shiftType] || shift.shiftType}</b>`
     );
   }
 }

@@ -46,44 +46,23 @@ export class SettingsService {
       return { success: false, message: '❌ Bot token noto\'g\'ri yoki bot topilmadi' };
     }
 
-    // Find chatIds for configured phones
-    const phones = settings.phones?.split(',').map(p => p.trim()).filter(Boolean) || [];
-    if (phones.length === 0) {
-      return { success: true, message: '✅ Bot token to\'g\'ri! Telefon raqam qo\'shsangiz xabar yuboriladi.' };
+    // Parse chat IDs
+    const chatIds = settings.phones?.split(',').map(p => p.trim()).filter(Boolean) || [];
+    if (chatIds.length === 0) {
+      return { success: true, message: '✅ Bot token to\'g\'ri! Chat ID qo\'shsangiz xabar yuboriladi.' };
     }
 
-    const users = await this.prisma.user.findMany({
-      where: { phone: { in: phones } },
-      select: { fullName: true, phone: true, telegramChatId: true },
-    });
-
-    const withChat = users.filter(u => u.telegramChatId);
-    const withoutChat = users.filter(u => !u.telegramChatId);
-
-    if (withChat.length === 0) {
-      const names = users.map(u => u.fullName).join(', ');
-      return {
-        success: false,
-        message: `⚠️ Raqamlar topildi (${names || phones.join(', ')}), lekin ular Telegram chatId ni hali bog'lamagan. Hodimlar sahifasida ularning Chat ID'sini kiriting.`,
-      };
-    }
-
-    // Send test messages
+    // Send test messages directly to chat IDs
     const results = await Promise.all(
-      withChat.map(u =>
-        this.telegramService.testConnection(
-          settings.botToken,
-          u.telegramChatId!,
-          u.fullName,
-        )
+      chatIds.map(chatId =>
+        this.telegramService.testConnection(settings.botToken, chatId)
       )
     );
     const sent = results.filter(Boolean).length;
 
-    let msg = `✅ ${sent} ta foydalanuvchiga test xabar yuborildi!`;
-    if (withoutChat.length > 0) {
-      msg += ` ⚠️ ${withoutChat.length} ta (${withoutChat.map(u => u.fullName).join(', ')}) — Chat ID yo'q.`;
-    }
+    const msg = sent > 0
+      ? `✅ ${sent} ta chat ga test xabar yuborildi!`
+      : '❌ Xabar yuborilmadi — chat ID larni tekshiring';
     return { success: sent > 0, message: msg };
   }
 }

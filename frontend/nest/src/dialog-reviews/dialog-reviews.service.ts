@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { DialogReviewStatus } from '@prisma/client';
 
 export class CreateDialogReviewDto {
@@ -31,7 +32,10 @@ export class UpdateDialogReviewDto {
 
 @Injectable()
 export class DialogReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private telegramService: TelegramService,
+  ) {}
 
   findAll(filters?: {
     operatorId?: string;
@@ -66,7 +70,7 @@ export class DialogReviewsService {
     return review;
   }
 
-  create(dto: CreateDialogReviewDto, reviewedById: string) {
+  async create(dto: CreateDialogReviewDto, reviewedById: string) {
     const totalScore =
       (dto.firstResponseScore || 0) +
       (dto.understandingScore || 0) +
@@ -74,7 +78,7 @@ export class DialogReviewsService {
       (dto.communicationScore || 0) +
       (dto.closingScore || 0);
 
-    return this.prisma.dialogReview.create({
+    const review = await this.prisma.dialogReview.create({
       data: {
         operatorId: dto.operatorId,
         productId: dto.productId,
@@ -92,7 +96,20 @@ export class DialogReviewsService {
         totalScore,
         reviewedById,
       } as any,
+      include: {
+        operator: { select: { id: true, fullName: true } },
+        reviewedBy: { select: { id: true, fullName: true } },
+      },
     });
+
+    // Telegram xabar (fire-and-forget)
+    this.telegramService.sendDialogReviewCreated({
+      operatorName: review.operator?.fullName || 'Noma\'lum',
+      totalScore,
+      reviewerName: review.reviewedBy?.fullName || 'Noma\'lum',
+    }).catch(() => {});
+
+    return review;
   }
 
   async update(id: string, dto: UpdateDialogReviewDto, reviewedById: string) {

@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { CreateShiftDto } from './dto/create-shift.dto';
 
 @Injectable()
 export class ShiftsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private telegramService: TelegramService,
+  ) {}
 
   async findByRange(from: string, to: string) {
     const fromDate = new Date(from);
@@ -37,7 +41,7 @@ export class ShiftsService {
     const date = new Date(dto.date);
     date.setHours(0, 0, 0, 0);
 
-    return this.prisma.shiftAssignment.create({
+    const shift = await this.prisma.shiftAssignment.create({
       data: {
         date,
         shiftType: dto.shiftType,
@@ -54,6 +58,15 @@ export class ShiftsService {
         },
       },
     });
+
+    // Telegram xabar (fire-and-forget)
+    this.telegramService.sendShiftAssigned({
+      userName: shift.user?.fullName || 'Noma\'lum',
+      date: date.toLocaleDateString('ru-RU'),
+      shiftType: shift.shiftType,
+    }).catch(() => {});
+
+    return shift;
   }
 
   async remove(id: string) {

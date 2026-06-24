@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { BugPriority, BugStatus } from '@prisma/client';
 
 export class CreateBugDto {
@@ -36,7 +37,10 @@ export class CreateCommentDto {
 
 @Injectable()
 export class BugsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private telegramService: TelegramService,
+  ) {}
 
   async findAll(filters?: {
     status?: BugStatus;
@@ -83,8 +87,8 @@ export class BugsService {
     return bug;
   }
 
-  create(dto: CreateBugDto, createdById: string) {
-    return this.prisma.bug.create({
+  async create(dto: CreateBugDto, createdById: string) {
+    const bug = await this.prisma.bug.create({
       data: {
         title: dto.title,
         productId: dto.productId,
@@ -105,6 +109,16 @@ export class BugsService {
         createdBy: { select: { id: true, fullName: true } },
       },
     });
+
+    // Telegram xabar (fire-and-forget)
+    this.telegramService.sendBugCreated({
+      title: bug.title,
+      productName: bug.product?.name || 'Noma\'lum',
+      priority: bug.priority,
+      createdByName: bug.createdBy?.fullName || 'Noma\'lum',
+    }).catch(() => {});
+
+    return bug;
   }
 
   async update(id: string, dto: UpdateBugDto, userId: string, userRole: string) {
@@ -113,13 +127,29 @@ export class BugsService {
     if (!isPrivileged && bug.createdById !== userId) {
       throw new ForbiddenException('You can only edit your own bugs');
     }
-    return this.prisma.bug.update({
+    const oldStatus = bug.status;
+    const updated = await this.prisma.bug.update({
       where: { id },
       data: {
         ...dto,
         deadline: dto.deadline ? new Date(dto.deadline) : undefined,
       },
+      include: {
+        product: { select: { id: true, name: true } },
+      },
     });
+
+    // Status o'zgarsa Telegram xabar
+    if (dto.status && dto.status !== oldStatus) {
+      this.telegramService.sendBugStatusChanged({
+        title: updated.title,
+        productName: updated.product?.name || 'Noma\'lum',
+        oldStatus,
+        newStatus: dto.status,
+      }).catch(() => {});
+    }
+
+    return updated;
   }
 
   async remove(id: string, userId: string, userRole: string) {

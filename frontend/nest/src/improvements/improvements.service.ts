@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { ImprovementStatus } from '@prisma/client';
 import * as ExcelJS from 'exceljs';
 
@@ -28,7 +29,10 @@ export class UpdateImprovementDto {
 
 @Injectable()
 export class ImprovementsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private telegramService: TelegramService,
+  ) {}
 
   findAll(filters?: {
     productId?: string;
@@ -64,10 +68,23 @@ export class ImprovementsService {
     return item;
   }
 
-  create(dto: CreateImprovementDto, createdById: string) {
-    return this.prisma.improvementRequest.create({
+  async create(dto: CreateImprovementDto, createdById: string) {
+    const improvement = await this.prisma.improvementRequest.create({
       data: { ...dto, createdById },
+      include: {
+        product: { select: { id: true, name: true } },
+        createdBy: { select: { id: true, fullName: true } },
+      },
     });
+
+    // Telegram xabar (fire-and-forget)
+    this.telegramService.sendImprovementCreated({
+      title: improvement.title,
+      productName: improvement.product?.name || 'Noma\'lum',
+      createdByName: improvement.createdBy?.fullName || 'Noma\'lum',
+    }).catch(() => {});
+
+    return improvement;
   }
 
   async update(id: string, dto: UpdateImprovementDto, userId: string, userRole: string) {

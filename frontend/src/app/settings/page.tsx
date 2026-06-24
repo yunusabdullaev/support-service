@@ -206,8 +206,8 @@ export default function SettingsPage() {
   const qc = useQueryClient();
 
   const [botToken, setBotToken] = useState('');
-  const [phones, setPhones] = useState<string[]>([]);
-  const [newPhone, setNewPhone] = useState('');
+  const [chatIds, setChatIds] = useState<string[]>([]);
+  const [newChatId, setNewChatId] = useState('');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const isAdmin = user?.role === 'ADMIN';
@@ -228,7 +228,7 @@ export default function SettingsPage() {
     if (settings) {
       if (settings.botToken) setBotToken(settings.botToken);
       if (settings.phones) {
-        setPhones(settings.phones.split(',').map((p: string) => p.trim()).filter(Boolean));
+        setChatIds(settings.phones.split(',').map((p: string) => p.trim()).filter(Boolean));
       }
     }
   }, [settings]);
@@ -244,27 +244,18 @@ export default function SettingsPage() {
     onError: () => setTestResult({ success: false, message: '❌ Ulanish xatosi' }),
   });
 
-  const formatPhone = (val: string) => {
-    const d = val.replace(/\D/g, '').slice(0, 12);
-    if (d.length <= 3) return d;
-    if (d.length <= 5) return `${d.slice(0,3)} ${d.slice(3)}`;
-    if (d.length <= 8) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5)}`;
-    if (d.length <= 10) return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8)}`;
-    return `${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}`;
-  };
-
-  const addPhone = () => {
-    const val = newPhone.replace(/\D/g, '');
-    if (val.length >= 9 && !phones.includes(val)) {
-      setPhones(p => [...p, val]);
+  const addChatId = () => {
+    const val = newChatId.trim();
+    if (val && !chatIds.includes(val)) {
+      setChatIds(p => [...p, val]);
     }
-    setNewPhone('');
+    setNewChatId('');
   };
 
-  const removePhone = (idx: number) => setPhones(p => p.filter((_, i) => i !== idx));
+  const removeChatId = (idx: number) => setChatIds(p => p.filter((_, i) => i !== idx));
 
   const handleSave = () => {
-    updateMutation.mutate({ botToken: botToken.trim(), phones: phones.join(','), isActive: true });
+    updateMutation.mutate({ botToken: botToken.trim(), phones: chatIds.join(','), isActive: true });
   };
 
   return (
@@ -442,40 +433,40 @@ export default function SettingsPage() {
 
                     <div className="border-t border-slate-800" />
 
-                    {/* Phone numbers */}
+                    {/* Chat IDs */}
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                        Telefon raqamlar
+                        Telegram Chat ID
                         <span className="ml-1.5 text-xs font-normal text-slate-500">(xabar oladiganlar)</span>
                       </label>
 
                       <div className="flex gap-2 mb-2">
                         <input
-                          type="tel"
-                          value={newPhone}
-                          onChange={e => setNewPhone(formatPhone(e.target.value))}
-                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addPhone())}
-                          placeholder="998 90 123 45 67"
+                          type="text"
+                          value={newChatId}
+                          onChange={e => setNewChatId(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addChatId())}
+                          placeholder="123456789"
                           className="flex-1 px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono tracking-wider"
                         />
                         <button
                           type="button"
-                          onClick={addPhone}
-                          disabled={newPhone.replace(/\D/g, '').length < 9}
+                          onClick={addChatId}
+                          disabled={!newChatId.trim()}
                           className="px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {phones.length === 0 ? (
-                        <p className="text-xs text-slate-600 italic py-1.5">Hali raqam qo'shilmagan</p>
+                      {chatIds.length === 0 ? (
+                        <p className="text-xs text-slate-600 italic py-1.5">Hali chat ID qo'shilmagan</p>
                       ) : (
                         <div className="space-y-1.5">
-                          {phones.map((p, i) => (
+                          {chatIds.map((id, i) => (
                             <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg">
-                              <span className="text-sm text-slate-200 font-mono">+{p}</span>
-                              <button type="button" onClick={() => removePhone(i)} className="p-0.5 text-slate-500 hover:text-red-400 transition-colors">
+                              <span className="text-sm text-slate-200 font-mono">{id}</span>
+                              <button type="button" onClick={() => removeChatId(i)} className="p-0.5 text-slate-500 hover:text-red-400 transition-colors">
                                 <XIcon className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -485,8 +476,9 @@ export default function SettingsPage() {
 
                       <div className="mt-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-lg">
                         <p className="text-xs text-slate-400 font-medium mb-1">💡 Qanday ishlaydi?</p>
-                        <p className="text-xs text-slate-500">1. Bu raqam egasi Hodimlar sahifasida Telegram Chat ID ni biriktiradi</p>
-                        <p className="text-xs text-slate-500">2. Yangi voqea yaratilganda bot shu kishilarga xabar yuboradi</p>
+                        <p className="text-xs text-slate-500">1. @userinfobot ga Telegram dan /start yuboring — chat ID ni ko'rsatadi</p>
+                        <p className="text-xs text-slate-500">2. O'sha chat ID ni shu yerga qo'shing</p>
+                        <p className="text-xs text-slate-500">3. Yangi voqea yaratilganda bot shu kishilarga xabar yuboradi</p>
                       </div>
                     </div>
 

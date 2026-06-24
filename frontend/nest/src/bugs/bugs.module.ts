@@ -3,9 +3,11 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { BugsController } from './bugs.controller';
 import { BugsService } from './bugs.service';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
   imports: [
+    TelegramModule,
     MulterModule.register({
       storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
