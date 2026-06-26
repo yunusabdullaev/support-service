@@ -9,7 +9,7 @@ export class TelegramService {
   constructor(private prisma: PrismaService) {}
 
   private async getSettings() {
-    return this.prisma.telegramSetting.findFirst({ where: { isActive: true } });
+    return this.prisma.telegramSetting.findFirst();
   }
 
   /**
