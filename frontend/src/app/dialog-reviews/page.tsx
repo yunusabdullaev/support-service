@@ -29,6 +29,7 @@ export default function DialogReviewsPage() {
   const { t } = useI18n();
   const { selectedProductId } = useProduct();
   const [operatorFilter, setOperatorFilter] = useState('');
+  const [reviewerFilter, setReviewerFilter] = useState('');
 
   const { data: reviews = [], isLoading } = useQuery<DialogReview[]>({
     queryKey: ['reviews', operatorFilter, selectedProductId],
@@ -66,12 +67,17 @@ export default function DialogReviewsPage() {
           </Link>
         </div>
 
-        <div className="glass-card p-4 flex items-center gap-3">
+        <div className="glass-card p-4 flex items-center gap-3 flex-wrap">
           <label className="text-sm text-slate-400">{t('filter_operator')}</label>
           <select value={operatorFilter} onChange={e => setOperatorFilter(e.target.value)}
             className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">{t('all_operators')}</option>
             {operators.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+          </select>
+          <select value={reviewerFilter} onChange={e => setReviewerFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Barcha baholovchilar</option>
+            {users.filter(u => ['ADMIN', 'TEAM_LEADER'].includes(u.role)).map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
           </select>
         </div>
 
@@ -83,7 +89,7 @@ export default function DialogReviewsPage() {
                 <div className="h-3 bg-slate-800 rounded mb-2 w-1/2" />
               </div>
             ))
-          ) : reviews.map(review => (
+          ) : reviews.filter(r => !reviewerFilter || r.reviewedBy?.id === reviewerFilter).map(review => (
             <Link key={review.id} href={`/dialog-reviews/${review.id}`}>
               <div className="glass-card p-5 hover:border-slate-600 transition-all duration-200 cursor-pointer h-full">
                 <div className="flex items-start justify-between mb-3">

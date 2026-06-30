@@ -14,7 +14,7 @@ import { useProduct } from '@/lib/product';
 import {
   Plus, Search, Clock, Bug as BugIcon, Download,
   UserPlus, Check, Edit3, Trash2, X, AlertCircle, Save, MessageSquare, Phone,
-  LayoutGrid, List
+  LayoutGrid, List, User
 } from 'lucide-react';
 import Link from 'next/link';
 import { UndoToast } from '@/components/ui/UndoToast';
@@ -35,6 +35,7 @@ export default function BugsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editBug, setEditBug] = useState<Bug | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [userFilter, setUserFilter] = useState('');
 
   const qc = useQueryClient();
 
@@ -102,6 +103,11 @@ export default function BugsPage() {
     queryFn: () => api.get('/products').then(r => r.data),
   });
 
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ['users'],
+    queryFn: () => api.get('/users').then(r => r.data),
+  });
+
   const { data: bugs = [], isLoading } = useQuery<Bug[]>({
     queryKey: ['bugs', productFilter, statusFilter, priorityFilter, fromDate, toDate],
     queryFn: () => {
@@ -137,6 +143,7 @@ export default function BugsPage() {
 
   const filtered = bugs
     .filter(b => !search || b.title.toLowerCase().includes(search.toLowerCase()))
+    .filter(b => !userFilter || b.createdBy?.id === userFilter)
     .sort((a, b) => {
       const closedStatuses = ['CLOSED', 'REJECTED'];
       const aIsClosed = closedStatuses.includes(a.status) ? 1 : 0;
@@ -201,6 +208,11 @@ export default function BugsPage() {
             className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">{t('all_priorities')}</option>
             {bugPriorities.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <select value={userFilter} onChange={e => setUserFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Barcha hodimlar</option>
+            {users.map((u: any) => <option key={u.id} value={u.id}>{u.fullName}</option>)}
           </select>
           <div className="flex items-center gap-1">
             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}

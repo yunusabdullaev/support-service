@@ -69,6 +69,7 @@ export default function DifficultiesPage() {
   const [upvoteTarget, setUpvoteTarget] = useState<string | null>(null);
   const [upvotePhone, setUpvotePhone] = useState('');
   const [undoId, setUndoId] = useState<string | null>(null);
+  const [userFilter, setUserFilter] = useState('');
 
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'TEAM_LEADER' || user?.role === 'DEVELOPER';
   const canEditItem = (createdById?: string) =>
@@ -111,6 +112,11 @@ export default function DifficultiesPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: () => api.get('/products').then(r => r.data),
+  });
+
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ['users'],
+    queryFn: () => api.get('/users').then(r => r.data),
   });
 
   const upvoteMutation = useMutation({
@@ -232,6 +238,11 @@ export default function DifficultiesPage() {
             ))}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <select value={userFilter} onChange={e => setUserFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Barcha hodimlar</option>
+              {users.map((u: any) => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+            </select>
             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title={t('date_from')}
               className="px-2.5 py-1.5 bg-slate-800/60 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <span className="text-slate-600 text-xs">–</span>
@@ -255,7 +266,7 @@ export default function DifficultiesPage() {
               </p>
             </div>
           ) : (
-            difficulties.map(d => (
+            difficulties.filter(d => !userFilter || d.createdBy?.id === userFilter).map(d => (
               <div key={d.id} className={`bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 group border-l-4 ${STATUS_COLORS_MAP[d.status]}`}>
                 <div className="flex items-start gap-4">
                   {/* Left: Content */}
