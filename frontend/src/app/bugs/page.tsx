@@ -284,9 +284,9 @@ export default function BugsPage() {
                                   <MessageSquare className="w-2.5 h-2.5" />{bug._count?.comments}
                                 </span>
                               )}
-                              {(bug.upvoteCount || 0) > 0 && (
+                              {(bug.reportedByClientsCount || 0) > 0 && (
                                 <span className="text-[10px] text-emerald-500 flex items-center gap-0.5">
-                                  <Phone className="w-2.5 h-2.5" />{bug.upvoteCount}
+                                  <Phone className="w-2.5 h-2.5" />{bug.reportedByClientsCount}
                                 </span>
                               )}
                             </div>
