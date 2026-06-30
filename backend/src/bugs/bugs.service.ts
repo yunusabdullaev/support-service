@@ -21,6 +21,7 @@ export class CreateBugDto {
 export class UpdateBugDto {
   title?: string;
   module?: string;
+  clientPhone?: string;
   description?: string;
   stepsToReproduce?: string;
   expectedResult?: string;

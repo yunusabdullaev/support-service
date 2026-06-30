@@ -550,6 +550,7 @@ function EditBugModal({ bug, onClose, onSave, isPending }: {
     title: bug.title,
     productId: bug.productId || '',
     module: bug.module || '',
+    clientPhone: bug.clientPhone || '',
     description: bug.description,
     priority: bug.priority,
     status: bug.status,
@@ -581,6 +582,12 @@ function EditBugModal({ bug, onClose, onSave, isPending }: {
             <div>
               <label className="block text-xs text-slate-400 mb-1">{t('module')}</label>
               <input value={form.module} onChange={e => set('module', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Mijoz telefoni</label>
+              <input value={form.clientPhone} onChange={e => set('clientPhone', e.target.value)}
+                placeholder="+998 90 000 00 00"
                 className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
             <div>
