@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 function ChangeNameForm() {
+  const { t } = useI18n();
   const { user, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [success, setSuccess] = useState('');
@@ -23,7 +24,7 @@ function ChangeNameForm() {
   const mutation = useMutation({
     mutationFn: (name: string) => api.patch('/auth/profile', { fullName: name }),
     onSuccess: (res) => {
-      setSuccess('Ism muvaffaqiyatli yangilandi');
+      setSuccess(t('name_updated'));
       setError('');
       if (refreshUser) refreshUser();
       // update localStorage
@@ -36,7 +37,7 @@ function ChangeNameForm() {
       setTimeout(() => setSuccess(''), 3000);
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || 'Xatolik yuz berdi');
+      setError(err.response?.data?.message || t('error_occurred'));
       setSuccess('');
     },
   });
@@ -54,8 +55,8 @@ function ChangeNameForm() {
           <UserCircle className="w-5 h-5 text-sky-400" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-white">Ism familiya</h2>
-          <p className="text-xs text-slate-500">O'z ismingizni o'zgartiring</p>
+          <h2 className="text-sm font-semibold text-white">{t('change_name')}</h2>
+          <p className="text-xs text-slate-500">{t('change_name_desc')}</p>
         </div>
       </div>
 
@@ -63,7 +64,7 @@ function ChangeNameForm() {
       {success && <div className="p-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">{success}</div>}
 
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">To'liq ism</label>
+        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('full_name_label')}</label>
         <input
           required
           value={fullName}
@@ -79,7 +80,7 @@ function ChangeNameForm() {
         className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         <Edit3 className="w-4 h-4" />
-        {mutation.isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+        {mutation.isPending ? t('saving_dots') : t('save')}
       </button>
     </form>
   );
@@ -276,8 +277,8 @@ export default function SettingsPage() {
                   <Package className="w-5 h-5 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-white">Mahsulot tanlash</h2>
-                  <p className="text-xs text-slate-500">Tizimdagi ma'lumotlarni filtr qilish uchun mahsulotni tanlang</p>
+                  <h2 className="text-sm font-semibold text-white">{t('product_select')}</h2>
+                  <p className="text-xs text-slate-500">{t('product_select_desc')}</p>
                 </div>
               </div>
 
@@ -291,10 +292,10 @@ export default function SettingsPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-semibold text-white">Barcha mahsulotlar</span>
+                    <span className="text-sm font-semibold text-white">{t('all_products')}</span>
                     {selectedProductId === null && <Check className="w-4 h-4 text-orange-400" />}
                   </div>
-                  <p className="text-xs text-slate-400">Umumiy ko'rinish</p>
+                  <p className="text-xs text-slate-400">{t('all_products_desc')}</p>
                 </button>
 
                 {products.filter(p => p.isActive).map(product => (
@@ -405,8 +406,8 @@ export default function SettingsPage() {
                     <Bot className="w-5 h-5 text-blue-400" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-white">Telegram xabarnomalar</h2>
-                    <p className="text-xs text-slate-500">Bot orqali hodimlarni xabardor qilish</p>
+                    <h2 className="text-sm font-semibold text-white">{t('telegram_notifications')}</h2>
+                    <p className="text-xs text-slate-500">{t('telegram_subtitle')}</p>
                   </div>
                 </div>
 
@@ -420,7 +421,7 @@ export default function SettingsPage() {
 
                     {/* Bot Token */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">Bot Token</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{t('bot_token_label')}</label>
                       <input
                         type="password"
                         value={botToken}
@@ -428,7 +429,7 @@ export default function SettingsPage() {
                         placeholder="1234567890:AAHh..."
                         className="w-full px-3 py-2.5 bg-slate-800/60 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                       />
-                      <p className="text-xs text-slate-500 mt-1">@BotFather dan olingan token</p>
+                      <p className="text-xs text-slate-500 mt-1">{t('bot_token_hint')}</p>
                     </div>
 
                     <div className="border-t border-slate-800" />
@@ -436,8 +437,8 @@ export default function SettingsPage() {
                     {/* Chat IDs */}
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                        Telegram Chat ID
-                        <span className="ml-1.5 text-xs font-normal text-slate-500">(xabar oladiganlar)</span>
+                        {t('chat_id_label')}
+                        <span className="ml-1.5 text-xs font-normal text-slate-500">({t('chat_id_hint_receivers')})</span>
                       </label>
 
                       <div className="flex gap-2 mb-2">
@@ -460,7 +461,7 @@ export default function SettingsPage() {
                       </div>
 
                       {chatIds.length === 0 ? (
-                        <p className="text-xs text-slate-600 italic py-1.5">Hali chat ID qo'shilmagan</p>
+                        <p className="text-xs text-slate-600 italic py-1.5">{t('no_chat_ids')}</p>
                       ) : (
                         <div className="space-y-1.5">
                           {chatIds.map((id, i) => (
@@ -475,10 +476,10 @@ export default function SettingsPage() {
                       )}
 
                       <div className="mt-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-lg">
-                        <p className="text-xs text-slate-400 font-medium mb-1">💡 Qanday ishlaydi?</p>
-                        <p className="text-xs text-slate-500">1. @userinfobot ga Telegram dan /start yuboring — chat ID ni ko'rsatadi</p>
-                        <p className="text-xs text-slate-500">2. O'sha chat ID ni shu yerga qo'shing</p>
-                        <p className="text-xs text-slate-500">3. Yangi voqea yaratilganda bot shu kishilarga xabar yuboradi</p>
+                        <p className="text-xs text-slate-400 font-medium mb-1">💡 {t('how_it_works')}</p>
+                        <p className="text-xs text-slate-500">1. {t('how_step_1')}</p>
+                        <p className="text-xs text-slate-500">2. {t('how_step_2')}</p>
+                        <p className="text-xs text-slate-500">3. {t('how_step_3')}</p>
                       </div>
                     </div>
 
@@ -497,11 +498,11 @@ export default function SettingsPage() {
                     <div className="flex gap-3">
                       <button type="button" onClick={() => testMutation.mutate()} disabled={testMutation.isPending || !botToken.trim()}
                         className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-sm font-medium rounded-lg transition-colors">
-                        {testMutation.isPending ? 'Tekshirilmoqda...' : 'Ulanishni tekshirish'}
+                        {testMutation.isPending ? t('checking_dots') : t('check_connection')}
                       </button>
                       <button type="button" onClick={handleSave} disabled={updateMutation.isPending}
                         className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
-                        {updateMutation.isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+                        {updateMutation.isPending ? t('saving_dots') : t('save')}
                       </button>
                     </div>
                   </div>

@@ -22,13 +22,20 @@ const ProductContext = createContext<ProductContextValue>({
 const STORAGE_KEY = 'selectedProductId';
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
-  const [selectedProductId, setSelectedProductIdState] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductIdState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem(STORAGE_KEY);
+      } catch {}
+    }
+    return null;
+  });
 
-  // Load from localStorage on mount
+  // Sync from localStorage on mount (backup)
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setSelectedProductIdState(saved);
+      if (saved !== selectedProductId) setSelectedProductIdState(saved);
     } catch {}
   }, []);
 
