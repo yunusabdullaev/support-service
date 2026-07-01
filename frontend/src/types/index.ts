@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'TEAM_LEADER' | 'OPERATOR' | 'DEVELOPER';
+export type Role = 'ADMIN' | 'TEAM_LEADER' | 'OPERATOR' | 'DEVELOPER' | 'SELLER';
 export type BugPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type BugStatus = 'NEW' | 'CONFIRMED' | 'IN_PROGRESS' | 'WAITING' | 'FIXED' | 'CLOSED' | 'REJECTED';
 export type ServiceStatus = 'ONLINE' | 'DEGRADED' | 'OFFLINE' | 'UNKNOWN';
