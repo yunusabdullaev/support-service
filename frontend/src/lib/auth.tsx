@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('user', JSON.stringify(data.user));
     setToken(data.access_token);
     setUser(data.user);
-    // Always go to dashboard — phone modal appears as an overlay if needed
-    router.push('/dashboard');
+    // SELLER goes to clients, others go to dashboard
+    router.push(data.user.role === 'SELLER' ? '/clients' : '/dashboard');
     if (!data.user.phone) {
       setNeedsPhone(true);
     }

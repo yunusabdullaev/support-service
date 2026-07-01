@@ -17,6 +17,7 @@ enum Role {
   TEAM_LEADER
   OPERATOR
   DEVELOPER
+  SELLER
 }
 
 enum BugPriority {

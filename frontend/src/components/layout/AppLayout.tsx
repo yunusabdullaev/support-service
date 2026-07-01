@@ -14,7 +14,7 @@ export function AppLayout({ children, allowedRoles }: { children: React.ReactNod
     if (!isLoading && !user) {
       router.push('/login');
     } else if (!isLoading && user && allowedRoles && !allowedRoles.includes(user.role)) {
-      router.push('/dashboard');
+      router.push(user.role === 'SELLER' ? '/clients' : '/dashboard');
     }
   }, [user, isLoading, router, allowedRoles]);
 

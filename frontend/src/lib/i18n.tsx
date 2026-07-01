@@ -331,6 +331,7 @@ const translations = {
     role_team_leader: 'Jamoa rahbari',
     role_operator: 'Operator',
     role_developer: 'Dasturchi',
+    role_seller: 'Sotuvchi',
 
     // Statuses
     status_new: 'Yangi',
@@ -678,6 +679,7 @@ const translations = {
     role_team_leader: 'Тимлид',
     role_operator: 'Оператор',
     role_developer: 'Разработчик',
+    role_seller: 'Продавец',
 
     status_new: 'Новый',
     status_confirmed: 'Подтверждён',
@@ -1024,6 +1026,7 @@ const translations = {
     role_team_leader: 'Team Leader',
     role_operator: 'Operator',
     role_developer: 'Developer',
+    role_seller: 'Seller',
 
     status_new: 'New',
     status_confirmed: 'Confirmed',

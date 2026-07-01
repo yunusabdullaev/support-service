@@ -15,7 +15,7 @@ import {
 import { PhoneInput } from '@/components/ui/PhoneInput';
 
 // ─── Types ───────────────────────────────────────────
-type Role = 'ADMIN' | 'TEAM_LEADER' | 'OPERATOR' | 'DEVELOPER';
+type Role = 'ADMIN' | 'TEAM_LEADER' | 'OPERATOR' | 'DEVELOPER' | 'SELLER';
 
 interface UserFormData {
   fullName: string;
@@ -30,6 +30,7 @@ const ROLE_COLORS: Record<string, string> = {
   TEAM_LEADER: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
   OPERATOR: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
   DEVELOPER: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  SELLER: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
 };
 
 // ─── Modal ────────────────────────────────────────────
@@ -87,7 +88,7 @@ function UserModal({
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-  const roles: Role[] = ['OPERATOR', 'DEVELOPER', 'TEAM_LEADER', 'ADMIN'];
+  const roles: Role[] = ['OPERATOR', 'DEVELOPER', 'SELLER', 'TEAM_LEADER', 'ADMIN'];
 
   if (!isOpen) return null;
 
@@ -357,6 +358,7 @@ export default function UsersPage() {
     TEAM_LEADER: t('role_team_leader'),
     OPERATOR: t('role_operator'),
     DEVELOPER: t('role_developer'),
+    SELLER: t('role_seller'),
   };
 
   const groupCounts = {
@@ -364,6 +366,7 @@ export default function UsersPage() {
     TEAM_LEADER: users.filter(u => u.role === 'TEAM_LEADER').length,
     OPERATOR: users.filter(u => u.role === 'OPERATOR').length,
     DEVELOPER: users.filter(u => u.role === 'DEVELOPER').length,
+    SELLER: users.filter(u => u.role === 'SELLER').length,
   };
 
   const openCreate = () => { setEditingUser(null); setModalOpen(true); };
@@ -390,17 +393,19 @@ export default function UsersPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {Object.entries(groupCounts).map(([role, count]) => (
             <div key={role} className="glass-card p-4 flex items-center gap-3">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                 role === 'ADMIN' ? 'bg-red-500/20' :
                 role === 'TEAM_LEADER' ? 'bg-indigo-500/20' :
-                role === 'OPERATOR' ? 'bg-emerald-500/20' : 'bg-blue-500/20'
+                role === 'OPERATOR' ? 'bg-emerald-500/20' :
+                role === 'SELLER' ? 'bg-amber-500/20' : 'bg-blue-500/20'
               }`}>
                 {role === 'ADMIN' ? <Shield className={`w-4 h-4 text-red-400`} /> :
                  role === 'TEAM_LEADER' ? <ShieldCheck className="w-4 h-4 text-indigo-400" /> :
                  role === 'OPERATOR' ? <UserCheck className="w-4 h-4 text-emerald-400" /> :
+                 role === 'SELLER' ? <UserCheck className="w-4 h-4 text-amber-400" /> :
                  <UserCheck className="w-4 h-4 text-blue-400" />}
               </div>
               <div>

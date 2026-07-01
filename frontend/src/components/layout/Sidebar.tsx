@@ -40,7 +40,7 @@ export function Sidebar() {
     { href: '/difficulties',   label: t('nav_difficulties'),    icon: Frown,           roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
     { href: '/bugs',           label: t('nav_bugs'),            icon: Bug,             roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
     { href: '/improvements',   label: t('nav_improvements'),   icon: Lightbulb,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
-    { href: '/clients',        label: t('nav_clients'),         icon: UserCheck,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
+    { href: '/clients',        label: t('nav_clients'),         icon: UserCheck,       roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'SELLER'] },
     { href: '/knowledge-base', label: t('nav_knowledge_base'), icon: BookOpen,        roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
     { href: '/dialog-reviews', label: t('nav_dialog_reviews'), icon: MessageSquare,   roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/shifts',          label: t('nav_shifts') || 'Smen jadvali', icon: CalendarDays, roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR'] },
@@ -50,7 +50,7 @@ export function Sidebar() {
     { href: '/reports',        label: t('nav_reports'),         icon: BarChart3,       roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/users',          label: t('nav_users'),           icon: Users,           roles: ['ADMIN', 'TEAM_LEADER'] },
     { href: '/products',       label: t('nav_products'),        icon: Package,         roles: ['ADMIN', 'TEAM_LEADER'] },
-    { href: '/settings',       label: t('nav_settings'),        icon: Settings,        roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER'] },
+    { href: '/settings',       label: t('nav_settings'),        icon: Settings,        roles: ['ADMIN', 'TEAM_LEADER', 'OPERATOR', 'DEVELOPER', 'SELLER'] },
   ];
 
   const filtered = navItems.filter(item => user && item.roles.includes(user.role));
