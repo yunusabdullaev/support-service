@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
+import { useProduct } from '@/lib/product';
 import { ArrowLeft, AlertCircle, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import { PhoneInput } from '@/components/ui/PhoneInput';
@@ -26,6 +27,7 @@ function formatSum(amount: number): string {
 
 export default function NewClientPage() {
   const { t } = useI18n();
+  const { selectedProductId } = useProduct();
   const router = useRouter();
   const qc = useQueryClient();
 
@@ -44,7 +46,7 @@ export default function NewClientPage() {
     employeeCount: 0,
     referredFrom: '',
     note: '',
-    productId: '',
+    productId: selectedProductId || '',
     installationStatus: 'NEW',
     bitrixStatus: 'NOT_ADDED',
   });

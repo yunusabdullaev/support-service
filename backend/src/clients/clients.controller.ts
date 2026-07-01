@@ -31,8 +31,9 @@ export class ClientsController {
     @Query('search') search?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('productId') productId?: string,
   ) {
-    return this.service.findAll(search, from, to);
+    return this.service.findAll(search, from, to, productId);
   }
 
   @Get(':id')
@@ -74,8 +75,9 @@ export class ClientsController {
     @Query('search') search?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('productId') productId?: string,
   ) {
-    const buffer = await this.service.exportExcel(search, from, to);
+    const buffer = await this.service.exportExcel(search, from, to, productId);
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
+import { useProduct } from '@/lib/product';
 import { formatDateTime } from '@/lib/utils';
 import {
   Plus, Search, UserCheck, Phone, MapPin, Briefcase,
@@ -70,6 +71,7 @@ export default function ClientsPage() {
   const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { selectedProductId } = useProduct();
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
@@ -80,6 +82,7 @@ export default function ClientsPage() {
     if (search) params.set('search', search);
     if (fromDate) params.set('from', fromDate);
     if (toDate) params.set('to', toDate);
+    if (selectedProductId) params.set('productId', selectedProductId);
 
     const token = localStorage.getItem('token');
     if (token) params.set('token', token);
@@ -90,12 +93,13 @@ export default function ClientsPage() {
   const [editClient, setEditClient] = useState<Client | null>(null);
 
   const { data: clients = [], isLoading } = useQuery<Client[]>({
-    queryKey: ['clients', search, fromDate, toDate],
+    queryKey: ['clients', search, fromDate, toDate, selectedProductId],
     queryFn: () => {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (fromDate) params.set('from', fromDate);
       if (toDate) params.set('to', toDate);
+      if (selectedProductId) params.set('productId', selectedProductId);
       return api.get(`/clients?${params.toString()}`).then(r => r.data);
     },
     refetchInterval: 5000,

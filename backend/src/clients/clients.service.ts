@@ -37,7 +37,7 @@ export class UpdateClientDto {
 export class ClientsService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(search?: string, from?: string, to?: string) {
+  findAll(search?: string, from?: string, to?: string, productId?: string) {
     return this.prisma.client.findMany({
       where: {
         AND: [
@@ -54,6 +54,7 @@ export class ClientsService {
             : {},
           from ? { createdAt: { gte: new Date(from) } } : {},
           to ? { createdAt: { lte: new Date(to) } } : {},
+          productId ? { productId } : {},
         ],
       },
       include: {
@@ -181,8 +182,8 @@ export class ClientsService {
     return 500000 + (employeeCount - 3) * 100000;
   }
 
-  async exportExcel(search?: string, from?: string, to?: string) {
-    const clients = await this.findAll(search, from, to);
+  async exportExcel(search?: string, from?: string, to?: string, productId?: string) {
+    const clients = await this.findAll(search, from, to, productId);
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Clients');
 

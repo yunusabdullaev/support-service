@@ -422,8 +422,8 @@ const translations = {
     general_settings_subtitle: 'Управление языком системы и режимом интерфейса',
     interface_language: 'Язык интерфейса',
     display_mode: 'Режим экрана',
-    theme_dark: 'Тёмный regime',
-    theme_light: 'Светлый regime',
+    theme_dark: 'Тёмный режим',
+    theme_light: 'Светлый режим',
     change_password: 'Смена пароля',
     current_password: 'Старый пароль',
     confirm_password: 'Подтвердите новый пароль',
@@ -1076,11 +1076,19 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('uz');
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('locale') as Locale | null;
+      if (saved && ['uz', 'ru', 'en'].includes(saved)) {
+        return saved;
+      }
+    }
+    return 'uz';
+  });
 
   useEffect(() => {
     const saved = localStorage.getItem('locale') as Locale | null;
-    if (saved && ['uz', 'ru', 'en'].includes(saved)) {
+    if (saved && ['uz', 'ru', 'en'].includes(saved) && saved !== locale) {
       setLocaleState(saved);
     }
   }, []);
