@@ -310,8 +310,6 @@ const translations = {
     // Settings
     settings_title: 'Sozlamalar',
     settings_subtitle: 'Bildirishnomalar va integratsiyalarni sozlang',
-    telegram_notifications: 'Telegram bildirishnomalari',
-    telegram_subtitle: 'Intsidentlar va kritik xatolar uchun ogohlantirishlar',
     bot_token: 'Bot token',
     chat_id: 'Chat ID',
     chat_id_hint: "Guruh ID (manfiy) yoki kanal foydalanuvchi nomi bo'lishi mumkin",
@@ -682,8 +680,6 @@ const translations = {
 
     settings_title: 'Настройки',
     settings_subtitle: 'Настройка уведомлений и интеграций',
-    telegram_notifications: 'Telegram-уведомления',
-    telegram_subtitle: 'Оповещения об инцидентах и критических багах',
     bot_token: 'Bot Token',
     chat_id: 'Chat ID',
     chat_id_hint: 'Может быть ID группы (отрицательное) или username канала',
@@ -1052,8 +1048,6 @@ const translations = {
 
     settings_title: 'Settings',
     settings_subtitle: 'Configure notifications and integrations',
-    telegram_notifications: 'Telegram Notifications',
-    telegram_subtitle: 'Send alerts for incidents and critical bugs',
     bot_token: 'Bot Token',
     chat_id: 'Chat ID',
     chat_id_hint: 'Can be a group ID (negative) or channel username',
