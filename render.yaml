@@ -9,9 +9,7 @@ services:
     startCommand: npx prisma db push && npm run start:prod
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: hippo-support-db
-          property: connectionString
+        sync: false  # Set manually in Render dashboard (MongoDB connection string)
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_ACCESS_EXPIRES_IN
@@ -34,10 +32,3 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         sync: false
-
-databases:
-  # PostgreSQL Database Instance
-  - name: hippo-support-db
-    databaseName: hippo_support
-    user: hippo
-    plan: free
