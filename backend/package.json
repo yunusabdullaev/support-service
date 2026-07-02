@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node prisma/seed.ts",
-    "fix": "ts-node prisma/fix.ts"
+    "fix": "ts-node prisma/fix.ts",
+    "backup:mongo": "DATABASE_URL=\"mongodb+srv://ultraantigravity_db_user:HippoSupport2024@cluster0.ikepjnp.mongodb.net/hippo_support?appName=Cluster0\" ts-node scripts/backup-mongodb.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -37,6 +38,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "exceljs": "^4.4.0",
+    "mongodb": "^7.4.0",
     "multer": "^2.1.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
